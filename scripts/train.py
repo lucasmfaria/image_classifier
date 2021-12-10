@@ -28,9 +28,7 @@ INITIAL_EPOCHS = 30
 FINE_TUNING_EPOCHS = 30
 FINE_TUNE_AT_LAYER = 15
 LOG_DIR = Path(r'../models/vgg16/logs')
-SAVE_DIR = r'../models/vgg16/checkpoints/trained_weights'
-
-# TODO create folders if not exists
+SAVE_DIR = Path(r'../models/vgg16/checkpoints/trained_weights')
 
 train_path = Path(r'../data/train')
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(train_path, image_size=(IMG_HEIGHT, IMG_WIDTH),\
@@ -50,8 +48,10 @@ valid_ds = valid_ds.prefetch(buffer_size=AUTOTUNE)
 model = make_model(n_classes=len(class_names), n_hidden=N_HIDDEN)
 freeze_all_vgg(model)
 
-# TODO - if binary, change loss
+# TODO - if binary, change loss and dense output size
 # TODO - use flake8 for python style test
+# TODO - dataset optimization on tensorflow
+# TODO - create script to delete last model logs/checkpoints
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=BASE_LEARNING_RATE),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
@@ -72,4 +72,4 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=FINE_TUNING_LEARN
 history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=[tb, checkpoint, reduce_lr, early_stopping], \
                     initial_epoch=history.epoch[-1])
 
-model.save(SAVE_DIR)
+model.save_weights(SAVE_DIR)
