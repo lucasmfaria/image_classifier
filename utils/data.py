@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from pathlib import Path
 
+
 def create_aux_dataframe(dataset_path):
     '''
     Generate
@@ -25,11 +26,12 @@ def create_aux_dataframe(dataset_path):
         df = df.append(df_)
     return df
 
+
 def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True, test_stratify=True, valid_stratify=True, \
                            under_sample=None, random_state=None):
     '''
 
-    :param df:
+    :param dataset_source_path: 
     :param test_size:
     :param valid_size:
     :param shuffle:
@@ -41,9 +43,9 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
     '''
 
     df = create_aux_dataframe(dataset_source_path)
-    X_train, X_test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state)
+    train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state)
 
     valid_split = valid_size / (1 - test_size)
-    X_train, X_valid = train_test_split(X_train, test_size=valid_split, shuffle=shuffle, random_state=random_state)
+    train, valid = train_test_split(train, test_size=valid_split, shuffle=shuffle, random_state=random_state)
 
-    return X_train, X_test, X_valid
+    return train, test, valid

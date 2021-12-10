@@ -52,6 +52,7 @@ freeze_all_vgg(model)
 # TODO - use flake8 for python style test
 # TODO - dataset optimization on tensorflow
 # TODO - create script to delete last model logs/checkpoints
+# TODO - create user interface to train and predict
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=BASE_LEARNING_RATE),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])

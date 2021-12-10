@@ -1,7 +1,7 @@
-from pathlib import Path
 import tensorflow as tf
 from tensorflow.keras.applications import vgg16
 from tensorflow.keras import layers
+
 
 def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224):
     '''
@@ -31,16 +31,19 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
     x = layers.Dropout(0.2)(x)
     x = layers.BatchNormalization()(x)
-    outputs = layers.Dense(n_classes, activation='softmax', name='output')(x)
+    n_outputs = n_classes if n_classes != 1 else 1  # only one output neuron if it's a binary classification problem
+    outputs = layers.Dense(n_outputs, activation='softmax', name='output')(x)
     model = tf.keras.Model(inputs, outputs)
 
     return model
+
 
 def freeze_all_vgg(model):
     for layer in model.layers:
         if 'vgg' in layer.name:
             for vgg_layer in layer.layers:
                 vgg_layer.trainable = False
+
 
 def unfreeze_last_vgg(model, which_freeze=15):
     for layer in model.layers:
@@ -50,11 +53,13 @@ def unfreeze_last_vgg(model, which_freeze=15):
             for vgg_layer in layer.layers[which_freeze:]:
                 vgg_layer.trainable = True
 
+
 def unfreeze_all_vgg(model):
     for layer in model.layers:
         if 'vgg' in layer.name:
             for vgg_layer in layer.layers:
                 vgg_layer.trainable = True
+
 
 def print_vgg_trainable(model):
     for layer in model.layers:
