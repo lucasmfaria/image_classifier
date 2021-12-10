@@ -25,7 +25,7 @@ def create_aux_dataframe(dataset_path):
         df = df.append(df_)
     return df
 
-def train_test_valid_split(df, test_size=0.15, valid_size=0.15, shuffle=True, test_stratify=True, valid_stratify=True, \
+def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True, test_stratify=True, valid_stratify=True, \
                            under_sample=None, random_state=None):
     '''
 
@@ -39,6 +39,8 @@ def train_test_valid_split(df, test_size=0.15, valid_size=0.15, shuffle=True, te
     :param random_state:
     :return:
     '''
+
+    df = create_aux_dataframe(dataset_source_path)
     X_train, X_test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state)
 
     valid_split = valid_size / (1 - test_size)
