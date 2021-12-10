@@ -31,7 +31,7 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
                            under_sample=None, random_state=None):
     '''
 
-    :param dataset_source_path: 
+    :param dataset_source_path:
     :param test_size:
     :param valid_size:
     :param shuffle:
