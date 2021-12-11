@@ -18,8 +18,9 @@ pip install -r requirements.txt
 ```
 
 ### TODOs
-
-- [ ] Create script to delete last model trained and its logs
+- [X] Jupyter notebook with the Transfer Learning experiment
+- [X] Script to generate the data splits (train, test and validation)
+- [X] Train and test scripts
 - [ ] Create API for model serving/deploy
 - [ ] Create user interface to train, test, predict and serve model
 - [ ] Create unit tests

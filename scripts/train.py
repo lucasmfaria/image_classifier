@@ -56,7 +56,6 @@ model = make_model(n_classes=len(class_names), n_hidden=N_HIDDEN)
 freeze_all_vgg(model)
 
 # TODO - use flake8 for python style test
-# TODO - create script to delete last model logs/checkpoints
 # TODO - create user interface to train and predict
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
