@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from pathlib import Path
+import tensorflow as tf
 
 
 def create_aux_dataframe(dataset_path):
@@ -49,3 +50,15 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
     train, valid = train_test_split(train, test_size=valid_split, shuffle=shuffle, random_state=random_state)
 
     return train, test, valid
+
+
+def filter_binary_labels(image, label):
+    return image, tf.expand_dims(tf.math.argmax(label, axis=1), axis=1)
+
+
+def optimize_dataset(ds):
+    autotune = tf.data.AUTOTUNE
+    ds = ds.cache()
+    # ds = ds.shuffle(num_examples)
+    ds = ds.prefetch(autotune)
+    return ds

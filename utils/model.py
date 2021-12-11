@@ -31,8 +31,9 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
     x = layers.Dropout(0.2)(x)
     x = layers.BatchNormalization()(x)
-    n_outputs = n_classes if n_classes != 1 else 1  # only one output neuron if it's a binary classification problem
-    outputs = layers.Dense(n_outputs, activation='softmax', name='output')(x)
+    n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
+    activation = 'softmax' if n_classes != 2 else 'sigmoid'  # sigmoid if it's a binary classification problem
+    outputs = layers.Dense(n_outputs, activation=activation, name='output')(x)
     model = tf.keras.Model(inputs, outputs)
 
     return model
