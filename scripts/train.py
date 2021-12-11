@@ -40,17 +40,26 @@ valid_ds = tf.keras.preprocessing.image_dataset_from_directory(valid_path, image
                                                                batch_size=BATCH_SIZE, shuffle=True, \
                                                                label_mode='categorical', seed=SEED)
 
-AUTOTUNE = tf.data.experimental.AUTOTUNE
 class_names = train_ds.class_names
-train_ds = train_ds.prefetch(buffer_size=AUTOTUNE)
-valid_ds = valid_ds.prefetch(buffer_size=AUTOTUNE)
+assert class_names == valid_ds.class_names
+
+
+def optimize_dataset(ds):
+    AUTOTUNE = tf.data.AUTOTUNE
+    ds = ds.cache()
+    # ds = ds.shuffle(num_examples)
+    ds = ds.prefetch(AUTOTUNE)
+    return ds
+
+
+train_ds = optimize_dataset(train_ds)
+valid_ds = optimize_dataset(valid_ds)
 
 model = make_model(n_classes=len(class_names), n_hidden=N_HIDDEN)
 freeze_all_vgg(model)
 
 # TODO - if binary, change loss and dense output size
 # TODO - use flake8 for python style test
-# TODO - dataset optimization on tensorflow
 # TODO - create script to delete last model logs/checkpoints
 # TODO - create user interface to train and predict
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=BASE_LEARNING_RATE),

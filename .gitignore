@@ -5,3 +5,7 @@ data/*/*.jpg
 data/*/*.csv
 data/*/*/*.jpg
 data/*/*/*.csv
+models/vgg16/checkpoints/*.tf.*
+models/vgg16/checkpoints/trained_weights.*
+models/vgg16/checkpoints/checkpoint
+models/vgg16/logs/*/events.out.tfevents*

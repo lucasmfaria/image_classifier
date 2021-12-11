@@ -4,15 +4,15 @@ from tensorflow.keras import layers
 
 
 def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224):
-    '''
-
-    :param n_classes:
-    :param include_top_vgg:
-    :param n_hidden:
-    :param img_height:
-    :param img_width:
-    :return:
-    '''
+    """
+    Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
+    :param n_classes: int - number of classes required for the classification problem
+    :param include_top_vgg: bool - whether or not to include the top of the pre-trained model
+    :param n_hidden: int - number of hidden layers to add to the pre-trained model
+    :param img_height: int - image height
+    :param img_width: int - image width
+    :return: tf.keras.Model - final model
+    """
     vgg_model = vgg16.VGG16(include_top=False, pooling='max')
 
     data_augmentation = tf.keras.Sequential([
