@@ -1,5 +1,5 @@
 .idea
-*.ipynb
+notebooks/.ipynb_checkpoints
 *__pycache__/
 data/*/*.jpg
 data/*/*.csv
