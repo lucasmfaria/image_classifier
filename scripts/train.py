@@ -58,10 +58,13 @@ valid_ds = optimize_dataset(valid_ds)
 model = make_model(n_classes=len(class_names), n_hidden=N_HIDDEN)
 freeze_all_vgg(model)
 
-# TODO - if binary, change loss and dense output size
+# TODO - if binary, change loss, dense output size and size of labels (only one vector, not matrix)
 # TODO - use flake8 for python style test
 # TODO - create script to delete last model logs/checkpoints
 # TODO - create user interface to train and predict
+# TODO - use dynaconf for configurations
+# TODO - save class_names taken from the train labels (image_dataset_from_directory)
+# TODO - include unit tests
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=BASE_LEARNING_RATE),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])

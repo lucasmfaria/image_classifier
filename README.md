@@ -20,5 +20,8 @@ pip install -r requirements.txt
 ### TODOs
 
 - [ ] Create script to delete last model trained and its logs
-- [ ] Create user interface to train and test
 - [ ] Create API for model serving/deploy
+- [ ] Create user interface to train, test, predict and serve model
+- [ ] Create unit tests
+- [ ] User dynaconf library to centralize application configurations
+- [ ] Save "class_names" after training as model configuration
