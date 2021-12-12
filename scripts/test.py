@@ -4,25 +4,26 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix
 import sys
-import os
-module_path = os.path.abspath(os.path.join('..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-from utils.model import make_model
-from utils.data import filter_binary_labels, optimize_dataset
+try:
+    from utils.model import make_model
+    from utils.data import filter_binary_labels, optimize_dataset
+except ModuleNotFoundError:
+    sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+    from utils.model import make_model
+    from utils.data import filter_binary_labels, optimize_dataset
 
-WEIGHTS_PATH = Path(r'../models/vgg16/checkpoints/trained_weights')
+WEIGHTS_PATH = Path(__file__).parent.parent / 'models' / 'vgg16' / 'checkpoints' / 'trained_weights'
 
-#Dataset parameters:
+# Dataset parameters:
 IMG_HEIGTH = 224
 IMG_WIDTH = 224
 BATCH_SIZE = 64
 
 N_HIDDEN = 512
 
-test_path = Path(r'../data/test')
-test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(IMG_HEIGTH, IMG_WIDTH), \
-                                                              batch_size=BATCH_SIZE, shuffle=False, \
+test_path = Path(__file__).parent.parent / 'data' / 'test'
+test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(IMG_HEIGTH, IMG_WIDTH),
+                                                              batch_size=BATCH_SIZE, shuffle=False,
                                                               label_mode='categorical')
 
 class_names = test_ds.class_names

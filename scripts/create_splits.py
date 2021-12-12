@@ -3,13 +3,14 @@ import shutil
 from tqdm import tqdm
 import sys
 import os
-module_path = os.path.abspath(os.path.join('..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-from utils.data import train_test_valid_split
+try:
+    from utils.data import train_test_valid_split
+except ModuleNotFoundError:
+    sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+    from utils.data import train_test_valid_split
 
-DATASET_SOURCE_PATH = Path(r'../data/dataset')
-SPLITS_DESTINATION = Path(r'../data')
+DATASET_SOURCE_PATH = Path(__file__).parent.parent / 'data' / 'dataset'
+SPLITS_DESTINATION = Path(__file__).parent.parent / 'data'
 
 X_train, X_test, X_valid = train_test_valid_split(DATASET_SOURCE_PATH, test_size=0.15, valid_size=0.15)
 

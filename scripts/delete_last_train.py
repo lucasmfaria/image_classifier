@@ -1,9 +1,9 @@
 from pathlib import Path
 import shutil
 
-CHECKPOINTS_FOLDER = r'../models/vgg16/checkpoints'
+CHECKPOINTS_FOLDER = Path(__file__).parent.parent / 'models' / 'vgg16' / 'checkpoints'
 LIST_CHECKPOINTS_SUBSTRINGS_DELETE = ['.tf.', 'checkpoint', 'trained_weights']
-LOGS_FOLDER = r'../models/vgg16/logs'
+LOGS_FOLDER = Path(__file__).parent.parent / 'models' / 'vgg16' / 'logs'
 LIST_LOGS_FOLDERS_DELETE = ['train', 'validation']
 
 # Delete the tensorflow model checkpoints
