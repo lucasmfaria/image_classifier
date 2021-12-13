@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from pathlib import Path
+from tqdm import tqdm
+import shutil
 import tensorflow as tf
 
 
@@ -62,3 +64,19 @@ def optimize_dataset(ds):
     # ds = ds.shuffle(num_examples)
     ds = ds.prefetch(autotune)
     return ds
+
+
+def delete_folder(destination_path):
+    if Path(destination_path).exists():
+        print('--------------DELETE ' + destination_path.name.upper() + ' SPLIT------------')
+        for directory in destination_path.iterdir():
+            if directory.is_dir():
+                shutil.rmtree(directory)
+
+
+def create_split(split, destination_path):
+    print('--------------COPY ' + destination_path.name.upper() + ' SPLIT------------')
+    for idx, _ in tqdm(split.iterrows(), total=split.shape[0]):
+        destination = (destination_path / idx.parent.name) / idx.name
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        shutil.copy(idx, destination)
