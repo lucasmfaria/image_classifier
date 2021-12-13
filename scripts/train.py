@@ -64,6 +64,7 @@ freeze_all_vgg(model)
 # TODO - include unit tests
 # TODO - set seed usability
 # TODO - stratify and undersample for majority class in train, test, valid splits creation
+# TODO - create logs
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=BASE_LEARNING_RATE),
               loss=loss, metrics=['accuracy'])
