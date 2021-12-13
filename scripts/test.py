@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix
 import sys
+import argparse
 try:
     from utils.model import make_model
     from utils.data import filter_binary_labels, optimize_dataset
@@ -12,18 +13,28 @@ except ModuleNotFoundError:
     from utils.model import make_model
     from utils.data import filter_binary_labels, optimize_dataset
 
-WEIGHTS_PATH = Path(__file__).parent.parent / 'models' / 'vgg16' / 'checkpoints' / 'trained_weights'
+parser = argparse.ArgumentParser()
 
-# Dataset parameters:
-IMG_HEIGTH = 224
-IMG_WIDTH = 224
-BATCH_SIZE = 64
+parser.add_argument('--img_height', type=int, help='Image height after resize', default=224)
+parser.add_argument('--img_width', type=int, help='Image width after resize', default=224)
+parser.add_argument('--batch_size', type=int, help='Batch size for training', default=64)
+parser.add_argument('--n_hidden', type=int, help='Number of neurons in hidden dense layers', default=512)
+DEFAULT_TEST_PATH = Path(__file__).parent.parent / 'data' / 'test'
+parser.add_argument('--test_path', type=str, help='Path of the test dataset', default=DEFAULT_TEST_PATH)
+DEFAULT_WEIGHTS_PATH = Path(__file__).parent.parent / 'models' / 'vgg16' / 'checkpoints' / 'trained_weights'
+parser.add_argument('--weights_path', type=str, help='Path of the final model weights file',
+                    default=DEFAULT_WEIGHTS_PATH)
 
-N_HIDDEN = 512
+args = parser.parse_args()
+img_height = args.img_height
+img_width = args.img_width
+batch_size = args.batch_size
+n_hidden = args.n_hidden
+test_path = Path(args.test_path)
+weights_path = Path(args.weights_path)
 
-test_path = Path(__file__).parent.parent / 'data' / 'test'
-test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(IMG_HEIGTH, IMG_WIDTH),
-                                                              batch_size=BATCH_SIZE, shuffle=False,
+test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(img_height, img_width),
+                                                              batch_size=batch_size, shuffle=False,
                                                               label_mode='categorical')
 
 class_names = test_ds.class_names
@@ -33,8 +44,8 @@ if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and conve
     test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
 test_ds = optimize_dataset(test_ds)
 
-model = make_model(n_classes=len(class_names), n_hidden=N_HIDDEN)
-model.load_weights(WEIGHTS_PATH)
+model = make_model(n_classes=len(class_names), n_hidden=n_hidden)
+model.load_weights(weights_path)
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()
 model.compile(loss=loss, metrics=['accuracy'])
 metrics = model.evaluate(test_ds)
