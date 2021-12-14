@@ -102,7 +102,7 @@ reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbos
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1)
 
 history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=[tb, checkpoint, reduce_lr,
-                                                                                          early_stopping])
+                                                                                       early_stopping])
 unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
 
 total_epochs = base_epochs + fine_tuning_epochs
