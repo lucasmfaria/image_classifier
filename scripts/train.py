@@ -10,11 +10,11 @@ import sys
 import argparse
 try:
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
-    from utils.data import filter_binary_labels, optimize_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
-    from utils.data import filter_binary_labels, optimize_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 
 parser = argparse.ArgumentParser()
 
@@ -42,6 +42,10 @@ DEFAULT_TRAIN_PATH = Path(__file__).parent.parent / 'data' / 'train'
 parser.add_argument('--train_path', type=str, help='Path of the train dataset', default=DEFAULT_TRAIN_PATH)
 DEFAULT_VALID_PATH = Path(__file__).parent.parent / 'data' / 'valid'
 parser.add_argument('--valid_path', type=str, help='Path of the validation dataset', default=DEFAULT_VALID_PATH)
+parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist]',
+                    default=None)
+parser.add_argument('--unit_test_dataset', type=bool, help='Whether or not to load only a few images, only for unit testing',
+                    default=False)
 
 args = parser.parse_args()
 img_height = args.img_height
@@ -60,34 +64,43 @@ final_model_name = args.final_model_name
 final_model_save_path = checkpoints_path / final_model_name
 train_path = Path(args.train_path)
 valid_path = Path(args.valid_path)
+sample_dataset = args.sample_dataset
+unit_test_dataset = args.unit_test_dataset
 
-train_ds = tf.keras.preprocessing.image_dataset_from_directory(train_path, image_size=(img_height, img_width),
-                                                               batch_size=batch_size, shuffle=True,
-                                                               label_mode='categorical', seed=seed)
+if sample_dataset in ['mnist']:  # loads a sample dataset for user/unit testing
+    train_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
+                                                             img_height=img_height, img_width=img_width)
 
-valid_ds = tf.keras.preprocessing.image_dataset_from_directory(valid_path, image_size=(img_height, img_width),
-                                                               batch_size=batch_size, shuffle=True,
-                                                               label_mode='categorical', seed=seed)
+else:  # loads a user defined dataset in path
+    train_ds = tf.keras.preprocessing.image_dataset_from_directory(train_path, image_size=(img_height, img_width),
+                                                                   batch_size=batch_size, shuffle=True,
+                                                                   label_mode='categorical', seed=seed)
 
-class_names = train_ds.class_names
-assert class_names == valid_ds.class_names
+    valid_ds = tf.keras.preprocessing.image_dataset_from_directory(valid_path, image_size=(img_height, img_width),
+                                                                   batch_size=batch_size, shuffle=True,
+                                                                   label_mode='categorical', seed=seed)
 
-AUTOTUNE = tf.data.AUTOTUNE
+    class_names = train_ds.class_names
+    assert class_names == valid_ds.class_names
 
-if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
-    train_ds = train_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
-    valid_ds = valid_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
-train_ds = optimize_dataset(train_ds)
-valid_ds = optimize_dataset(valid_ds)
+    AUTOTUNE = tf.data.AUTOTUNE
 
-model = make_model(n_classes=len(class_names), n_hidden=n_hidden)
+    if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
+        train_ds = train_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+        valid_ds = valid_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+    train_ds = optimize_dataset(train_ds)
+    valid_ds = optimize_dataset(valid_ds)
+
+if unit_test_dataset:  # take only some elements of dataset, only used for unit testing
+    train_ds = train_ds.take(5)
+    valid_ds = valid_ds.take(5)
+
+model = make_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width)
 freeze_all_vgg(model)
 
 # TODO - use flake8 for python style test
-# TODO - create user interface to train and predict
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
-# TODO - include unit tests
 # TODO - set seed usability
 # TODO - stratify and undersample for majority class in train, test, valid splits creation
 # TODO - create logs

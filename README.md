@@ -24,8 +24,8 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 - [X] Jupyter notebook with the Transfer Learning experiment
 - [X] Script to generate the data splits (train, test and validation)
 - [X] Train and test scripts
+- [X] Create user interface to train, test, predict and serve model (need to improve)
+- [X] Create unit tests (need to improve)
 - [ ] Create API for model serving/deploy
-- [ ] Create user interface to train, test, predict and serve model
-- [ ] Create unit tests
 - [ ] User dynaconf library to centralize application configurations
 - [ ] Save "class_names" after training as model configuration

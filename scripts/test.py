@@ -7,11 +7,11 @@ import sys
 import argparse
 try:
     from utils.model import make_model
-    from utils.data import filter_binary_labels, optimize_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
     from utils.model import make_model
-    from utils.data import filter_binary_labels, optimize_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 
 parser = argparse.ArgumentParser()
 
@@ -24,6 +24,10 @@ parser.add_argument('--test_path', type=str, help='Path of the test dataset', de
 DEFAULT_WEIGHTS_PATH = Path(__file__).parent.parent / 'models' / 'vgg16' / 'checkpoints' / 'trained_weights'
 parser.add_argument('--weights_path', type=str, help='Path of the final model weights file',
                     default=DEFAULT_WEIGHTS_PATH)
+parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist, cats_vs_dogs]',
+                    default=None)
+parser.add_argument('--unit_test_dataset', type=bool, help='Whether or not to load only a few images, only for unit testing',
+                    default=False)
 
 args = parser.parse_args()
 img_height = args.img_height
@@ -32,17 +36,26 @@ batch_size = args.batch_size
 n_hidden = args.n_hidden
 test_path = Path(args.test_path)
 weights_path = Path(args.weights_path)
+sample_dataset = args.sample_dataset
+unit_test_dataset = args.unit_test_dataset
 
-test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(img_height, img_width),
-                                                              batch_size=batch_size, shuffle=False,
-                                                              label_mode='categorical')
+if sample_dataset in ['mnist']:  # loads a sample dataset for user testing
+    _, test_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
+                                                             img_height=img_height, img_width=img_width)
+else:
+    test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(img_height, img_width),
+                                                                  batch_size=batch_size, shuffle=False,
+                                                                  label_mode='categorical')
 
-class_names = test_ds.class_names
-AUTOTUNE = tf.data.experimental.AUTOTUNE
+    class_names = test_ds.class_names
+    AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
-    test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
-test_ds = optimize_dataset(test_ds)
+    if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
+        test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+    test_ds = optimize_dataset(test_ds)
+
+if unit_test_dataset:  # take only some elements of dataset, only used for unit testing
+    test_ds = test_ds.take(5)
 
 model = make_model(n_classes=len(class_names), n_hidden=n_hidden)
 model.load_weights(weights_path)

@@ -6,6 +6,7 @@ from pathlib import Path
 from tqdm import tqdm
 import shutil
 import tensorflow as tf
+import tensorflow_datasets as tfds
 
 
 def create_aux_dataframe(dataset_path):
@@ -58,12 +59,40 @@ def filter_binary_labels(image, label):
     return image, tf.expand_dims(tf.math.argmax(label, axis=1), axis=1)
 
 
-def optimize_dataset(ds):
+def optimize_dataset(ds, sample_dataset=None, batch_size=None):
     autotune = tf.data.AUTOTUNE
+    if sample_dataset == 'mnist':
+        ds = ds.batch(batch_size)
+    elif sample_dataset == 'cats_vs_dogs':
+        ds = ds.batch(batch_size)
     ds = ds.cache()
     # ds = ds.shuffle(num_examples)
     ds = ds.prefetch(autotune)
     return ds
+
+
+def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_width=224):
+    if sample_dataset == 'mnist':
+        (train_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'test'], shuffle_files=True,
+                                                  as_supervised=True, with_info=True)
+        # TODO - fix this class names - get from dataset
+        class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+        def preprocess(image, label):
+            image = tf.cast(image, tf.float32) / 255.
+            return tf.image.grayscale_to_rgb(tf.image.resize(image, size=(img_height, img_width))), \
+                                             tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
+
+        train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+
+        valid_ds = valid_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+        valid_ds = valid_ds.batch(batch_size)
+        valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
+
+        return train_ds, valid_ds, class_names
+    # TODO - include other sample datasets
 
 
 def delete_folder(destination_path):
