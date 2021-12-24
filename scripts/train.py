@@ -12,7 +12,7 @@ try:
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 except ModuleNotFoundError:
-    sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
 
@@ -104,7 +104,6 @@ freeze_all_vgg(model)
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
 # TODO - set seed usability
-# TODO - stratify and undersample for majority class in train, test, valid splits creation
 # TODO - create logs
 # TODO - verify Path().parent or Path().resolve().parent, why did it work before? should I change?
 # TODO - script to verify if there are duplicated images/files

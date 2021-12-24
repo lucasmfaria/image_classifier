@@ -7,7 +7,7 @@ from pathlib import Path
 try:
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg, unfreeze_all_vgg, print_vgg_trainable
 except ModuleNotFoundError:
-    sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg, unfreeze_all_vgg, print_vgg_trainable
 
 

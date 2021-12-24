@@ -2,8 +2,8 @@ import PySimpleGUI as sg
 import subprocess
 from pathlib import Path
 
-DEFAULT_DATASET_SOURCE_PATH = Path(__file__).parent / 'data' / 'dataset'
-DEFAULT_SPLITS_DESTINATION = Path(__file__).parent / 'data'
+DEFAULT_DATASET_SOURCE_PATH = Path(__file__).resolve().parent / 'data' / 'dataset'
+DEFAULT_SPLITS_DESTINATION = Path(__file__).resolve().parent / 'data'
 
 layout_create_splits = [
     [
