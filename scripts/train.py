@@ -95,6 +95,9 @@ if unit_test_dataset:  # take only some elements of dataset, only used for unit 
     train_ds = train_ds.take(5)
     valid_ds = valid_ds.take(5)
 
+if seed is not None:
+    tf.random.set_seed(seed)
+
 model = make_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width)
 freeze_all_vgg(model)
 
@@ -103,8 +106,8 @@ freeze_all_vgg(model)
 # TODO - create filter for corrupted images before train
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
-# TODO - set seed usability
 # TODO - create logs
+# TODO - debug seed for real reproducibility
 # TODO - script to verify if there are duplicated images/files
 # TODO - create script to save the models
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()
@@ -117,6 +120,9 @@ checkpoint = ModelCheckpoint(checkpoints_path / 'train_{epoch}.tf', verbose=1, s
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1)
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1)
 
+if seed is not None:
+    tf.random.set_seed(seed)
+
 history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=[tb, checkpoint, reduce_lr,
                                                                                        early_stopping])
 unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
@@ -124,6 +130,10 @@ unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
 total_epochs = base_epochs + fine_tuning_epochs
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=fine_tuning_lr),
               loss=loss, metrics=['accuracy'])
+
+if seed is not None:
+    tf.random.set_seed(seed)
+
 history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds,
                     callbacks=[tb, checkpoint, reduce_lr, early_stopping], initial_epoch=history.epoch[-1])
 

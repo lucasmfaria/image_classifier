@@ -17,7 +17,7 @@ DEFAULT_SPLITS_DESTINATION = Path(__file__).parent.parent / 'data'
 parser.add_argument('--splits_dest_path', type=str, help='Splits destination path', default=DEFAULT_SPLITS_DESTINATION)
 parser.add_argument('--undersample_ratio', type=float, help='Ratio used to under sample the majority classes',
                     default=None)
-parser.add_argument('--seed', type=int, help='Seed used for reproducibility', default=None)
+parser.add_argument('--seed', type=int, help='Seed number for reproducibility', default=None)
 args = parser.parse_args()
 
 dataset_path = Path(args.dataset_path)
