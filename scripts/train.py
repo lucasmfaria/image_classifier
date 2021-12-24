@@ -99,11 +99,15 @@ model = make_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img
 freeze_all_vgg(model)
 
 # TODO - use flake8 for python style test
+# TODO - create filter for corrupted images before train
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
 # TODO - set seed usability
 # TODO - stratify and undersample for majority class in train, test, valid splits creation
 # TODO - create logs
+# TODO - verify Path().parent or Path().resolve().parent, why did it work before? should I change?
+# TODO - script to verify if there are duplicated images/files
+# TODO - create script to save the models
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr),
               loss=loss, metrics=['accuracy'])

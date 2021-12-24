@@ -2,8 +2,10 @@
 notebooks/.ipynb_checkpoints
 *__pycache__/
 data/*/*.jpg
+data/*/*.png
 data/*/*.csv
 data/*/*/*.jpg
+data/*/*/*.png
 data/*/*/*.csv
 models/vgg16/checkpoints/*.tf.*
 models/vgg16/checkpoints/trained_weights.*
