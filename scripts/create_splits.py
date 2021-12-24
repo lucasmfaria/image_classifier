@@ -15,12 +15,16 @@ DEFAULT_DATASET_SOURCE_PATH = Path(__file__).parent.parent / 'data' / 'dataset'
 parser.add_argument('--dataset_path', type=str, help='Image dataset source path', default=DEFAULT_DATASET_SOURCE_PATH)
 DEFAULT_SPLITS_DESTINATION = Path(__file__).parent.parent / 'data'
 parser.add_argument('--splits_dest_path', type=str, help='Splits destination path', default=DEFAULT_SPLITS_DESTINATION)
+parser.add_argument('--undersample_ratio', type=float, help='Ratio used to under sample the majority classes',
+                    default=None)
 args = parser.parse_args()
 
 dataset_path = Path(args.dataset_path)
 splits_destination_path = Path(args.splits_dest_path)
+undersample_ratio = args.undersample_ratio
 
-X_train, X_test, X_valid = train_test_valid_split(dataset_path, test_size=args.test_size, valid_size=args.valid_size)
+X_train, X_test, X_valid = train_test_valid_split(dataset_path, test_size=args.test_size, valid_size=args.valid_size,
+                                                  under_sample_ratio=undersample_ratio)
 
 splits = [('train', X_train), ('test', X_test), ('valid', X_valid)]
 

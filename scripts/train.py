@@ -99,6 +99,7 @@ model = make_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img
 freeze_all_vgg(model)
 
 # TODO - use flake8 for python style test
+# TODO - create functions docstring
 # TODO - create filter for corrupted images before train
 # TODO - use dynaconf for configurations
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)

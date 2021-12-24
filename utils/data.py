@@ -7,6 +7,7 @@ from tqdm import tqdm
 import shutil
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from imblearn.under_sampling import RandomUnderSampler
 
 
 def create_aux_dataframe(dataset_path):
@@ -28,30 +29,40 @@ def create_aux_dataframe(dataset_path):
                 one_hot_vector = np.zeros(shape=(df_.shape[0],))
                 df_[col] = one_hot_vector
         df = df.append(df_)
+    df = df.assign(y=np.argmax(df.values, axis=1))
     return df
 
 
-def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True, test_stratify=True, valid_stratify=True, \
-                           under_sample=None, random_state=None):
+def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True,
+                           under_sample_ratio=None, random_state=None):
     '''
 
+    :param under_sample_ratio:
     :param dataset_source_path:
     :param test_size:
     :param valid_size:
     :param shuffle:
-    :param test_stratify:
-    :param valid_stratify:
-    :param under_sample:
     :param random_state:
     :return:
     '''
 
     df = create_aux_dataframe(dataset_source_path)
-    train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state)
+    train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state,
+                                   stratify=df.y)  # test split uses stratification technique and gets the
+    # "real data distribution"
+
+    if under_sample_ratio:  # train and valid splits distributions are controlled by the under_sample_ratio parameter,
+        # if it is used
+        train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
+        # RandomUnderSample resets the index
+        rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False)
+        train, _ = rus.fit_resample(train, train.y)
+        train.index = train.file
+        train.drop(['file'], axis=1, inplace=True)
 
     valid_split = valid_size / (1 - test_size)
-    train, valid = train_test_split(train, test_size=valid_split, shuffle=shuffle, random_state=random_state)
-
+    train, valid = train_test_split(train, test_size=valid_split, shuffle=shuffle, random_state=random_state,
+                                    stratify=train.y)
     return train, test, valid
 
 

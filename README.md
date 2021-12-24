@@ -22,7 +22,8 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 
 ### TODOs
 - [X] Jupyter notebook with the Transfer Learning experiment
-- [X] Script to generate the data splits (train, test and validation)
+- [X] Script to generate the data splits (train, test and validation).
+- [X] Under sampling for the majority classes, controlled by the user.
 - [X] Train and test scripts
 - [X] Create user interface to train, test, predict and serve model (need to improve)
 - [X] Create unit tests (need to improve)
