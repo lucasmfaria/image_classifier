@@ -105,7 +105,6 @@ freeze_all_vgg(model)
 # TODO - save class_names taken from the train labels (image_dataset_from_directory)
 # TODO - set seed usability
 # TODO - create logs
-# TODO - verify Path().parent or Path().resolve().parent, why did it work before? should I change?
 # TODO - script to verify if there are duplicated images/files
 # TODO - create script to save the models
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()

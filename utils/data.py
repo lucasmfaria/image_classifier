@@ -55,7 +55,7 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
         # if it is used
         train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
         # RandomUnderSample resets the index
-        rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False)
+        rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False, random_state=random_state)
         train, _ = rus.fit_resample(train, train.y)
         train.index = train.file
         train.drop(['file'], axis=1, inplace=True)
