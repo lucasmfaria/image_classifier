@@ -109,7 +109,6 @@ freeze_all_vgg(model)
 # TODO - create logs
 # TODO - debug seed for real reproducibility
 # TODO - script to verify if there are duplicated images/files
-# TODO - create script to save the models
 loss = tf.keras.losses.CategoricalCrossentropy() if len(class_names) > 2 else tf.keras.losses.BinaryCrossentropy()
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr),
               loss=loss, metrics=['accuracy'])

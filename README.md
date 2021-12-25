@@ -15,9 +15,10 @@ pip install -r requirements.txt
 - Move your image dataset into the folder 'data', with the classes separation. Final directory 
 example for a multiclass classification: 'data/dataset/class1', 'data/dataset/class2', 'data/dataset/class3'.
 - Use "create_splits.py" to create the train, test and validation splits.
-- Use "train.py" to train your neural network
-- Use "test.py" to evaluate your model
-- Use "delete_last_train.py" to delete the trained model.
+- Use "train.py" to train your neural network.
+- Use "test.py" to evaluate your model.
+- Use "save_last_train.py" if you liked your tested model and want to save it on "saved_models" directory.
+- Use "delete_last_train.py" to delete the trained model from the "checkpoints" and "logs" directories.
 ```
 
 ### TODOs
@@ -25,6 +26,7 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 - [X] Script to generate the data splits (train, test and validation).
 - [X] Under sampling for the majority classes, controlled by the user.
 - [X] Train and test scripts
+- [X] Script to save the last trained model with test statistics
 - [X] Create user interface to train, test, predict and serve model (need to improve)
 - [X] Create unit tests (need to improve)
 - [ ] Create API for model serving/deploy
