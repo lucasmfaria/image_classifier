@@ -17,7 +17,11 @@ for file in trained_model_file_paths:  # copies the model weights files
     shutil.copy(file, new_saved_model_path / file.name)
 
 # saves the test split statistics for the trained model
-p = subprocess.run(['python', str(Path(r'./scripts/test.py'))], shell=True, check=True, stdout=subprocess.PIPE)
+if os.name == 'nt':
+    shell = True
+elif os.name == 'posix':
+    shell = False
+p = subprocess.run(['python', str(Path(r'./scripts/test.py'))], shell=shell, check=True, stdout=subprocess.PIPE)
 
 with open(new_saved_model_path / 'results.txt', 'w') as file_txt:
     results_text = p.stdout.decode()

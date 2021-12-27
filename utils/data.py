@@ -7,7 +7,9 @@ from tqdm import tqdm
 import shutil
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import uuid
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler
 
 
 def create_aux_dataframe(dataset_path):
@@ -34,7 +36,7 @@ def create_aux_dataframe(dataset_path):
 
 
 def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True,
-                           under_sample_ratio=None, random_state=None):
+                           undersample_ratio=None, oversample_ratio=None, random_state=None):
     '''
 
     :param under_sample_ratio:
@@ -51,24 +53,42 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
                                    stratify=df.y)  # test split uses stratification technique and gets the
     # "real data distribution"
 
-    if under_sample_ratio:  # train and valid splits distributions are controlled by the under_sample_ratio parameter,
+    if (undersample_ratio is not None) and (oversample_ratio is None):  # train and valid splits distributions are controlled by the undersample_ratio parameter,
         # if it is used
         train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
         # RandomUnderSample resets the index
-        if np.unique(train.y).shape[0] == 2:
-            rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False, random_state=random_state)
-        else:
+        if np.unique(train.y).shape[0] == 2:  # binary case
+            rus = RandomUnderSampler(sampling_strategy=undersample_ratio, replacement=False, random_state=random_state)
+        else:  # multiclass case
             under_sample_dict = {}
             classes_examples_dict = train.groupby('y')['y'].count().to_dict()
             classes_examples_dict = dict(sorted(classes_examples_dict.items(), key=lambda item: item[1]))
             for idx, class_ in enumerate(classes_examples_dict.keys()):
-                if idx == 0:
-                    n_max = int(classes_examples_dict[class_]/under_sample_ratio)
+                if idx == 0:  # starts with the minority class
+                    n_max = int(classes_examples_dict[class_]/undersample_ratio)
                     under_sample_dict[class_] = classes_examples_dict[class_]
                 else:
                     under_sample_dict[class_] = n_max if classes_examples_dict[class_] > n_max else classes_examples_dict[class_]
             rus = RandomUnderSampler(sampling_strategy=under_sample_dict, replacement=False, random_state=random_state)
         train, _ = rus.fit_resample(train, train.y)
+        train.index = train.file
+        train.drop(['file'], axis=1, inplace=True)
+    elif (undersample_ratio is None) and (oversample_ratio is not None):
+        train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
+        if np.unique(train.y).shape[0] == 2:  # binary case
+            ros = RandomOverSampler(sampling_strategy=oversample_ratio, shrinkage=None, random_state=random_state)
+        else:  # multiclass case
+            over_sample_dict = {}
+            classes_examples_dict = train.groupby('y')['y'].count().to_dict()
+            classes_examples_dict = dict(sorted(classes_examples_dict.items(), key=lambda item: item[1], reverse=True))
+            for idx, class_ in enumerate(classes_examples_dict.keys()):
+                if idx == 0:  # starts with the majority class
+                    n_min = int(classes_examples_dict[class_] * oversample_ratio)
+                    over_sample_dict[class_] = classes_examples_dict[class_]
+                else:
+                    over_sample_dict[class_] = n_min if classes_examples_dict[class_] < n_min else classes_examples_dict[class_]
+            ros = RandomOverSampler(sampling_strategy=over_sample_dict, shrinkage=None, random_state=random_state)
+        train, _ = ros.fit_resample(train, train.y)
         train.index = train.file
         train.drop(['file'], axis=1, inplace=True)
 
@@ -131,4 +151,8 @@ def create_split(split, destination_path):
     for idx, _ in tqdm(split.iterrows(), total=split.shape[0]):
         destination = (destination_path / idx.parent.name) / idx.name
         os.makedirs(os.path.dirname(destination), exist_ok=True)
+        if destination.exists():
+            filename_append = str(uuid.uuid4())
+            destination = destination.parent / (destination.name.split('.')[0] + filename_append + '.' +
+                                                destination.name.split('.')[-1])
         shutil.copy(idx, destination)
