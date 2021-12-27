@@ -55,7 +55,19 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
         # if it is used
         train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
         # RandomUnderSample resets the index
-        rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False, random_state=random_state)
+        if np.unique(train.y).shape[0] == 2:
+            rus = RandomUnderSampler(sampling_strategy=under_sample_ratio, replacement=False, random_state=random_state)
+        else:
+            under_sample_dict = {}
+            classes_examples_dict = train.groupby('y')['y'].count().to_dict()
+            classes_examples_dict = dict(sorted(classes_examples_dict.items(), key=lambda item: item[1]))
+            for idx, class_ in enumerate(classes_examples_dict.keys()):
+                if idx == 0:
+                    n_max = int(classes_examples_dict[class_]/under_sample_ratio)
+                    under_sample_dict[class_] = classes_examples_dict[class_]
+                else:
+                    under_sample_dict[class_] = n_max if classes_examples_dict[class_] > n_max else classes_examples_dict[class_]
+            rus = RandomUnderSampler(sampling_strategy=under_sample_dict, replacement=False, random_state=random_state)
         train, _ = rus.fit_resample(train, train.y)
         train.index = train.file
         train.drop(['file'], axis=1, inplace=True)
