@@ -156,3 +156,11 @@ def create_split(split, destination_path):
             destination = destination.parent / (destination.name.split('.')[0] + filename_append + '.' +
                                                 destination.name.split('.')[-1])
         shutil.copy(idx, destination)
+
+
+def get_platform_shell():
+    if os.name == 'nt':
+        shell = True
+    elif os.name == 'posix':
+        shell = False
+    return shell
