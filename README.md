@@ -21,6 +21,18 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 - Use "delete_last_train.py" to delete the trained model from the "checkpoints" and "logs" directories.
 ```
 
+## Using the Web Application
+
+```
+- Move your image dataset into the folder 'data', with the classes separation. Final directory 
+example for a multiclass classification: 'data/dataset/class1', 'data/dataset/class2', 'data/dataset/class3'.
+- Run "streamlit run web_app.py".
+- Open the browser - http://localhost:8501/
+- Create the train, validation and test splits.
+- Train the neural network.
+- Test the neural network.
+```
+
 ### TODOs
 - [X] Jupyter notebook with the Transfer Learning experiment
 - [X] Script to generate the data splits (train, test and validation).
@@ -29,6 +41,7 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 - [X] Script to save the last trained model with test statistics
 - [X] Create user interface to train, test, predict and serve model (need to improve)
 - [X] Create unit tests (need to improve)
+- [X] Added support for Streamlit web application to control the parameters
 - [ ] Create API for model serving/deploy
 - [ ] User dynaconf library to centralize application configurations
 - [ ] Save "class_names" after training as model configuration
