@@ -14,11 +14,14 @@ from imblearn.over_sampling import RandomOverSampler
 
 
 def create_aux_dataframe(dataset_path):
-    '''
-    Generate
-    :param dataset_path:
-    :return:
-    '''
+    """
+    Generates an auxiliary pandas.DataFrame that maps each image file inside the dataset directories to its class.
+    This makes it easy to split the data into train, test and validation splits.
+    :param dataset_path: str or pathlib.Path
+        Path to the dataset directory
+    :return: pandas.DataFrame
+        Index as the file_path (pathlib.Path object) and columns as class (one hot encoded matrix and label vector)
+    """
     directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
     df = pd.DataFrame(columns=[directory.name for directory in directory_list])
     for directory in directory_list:
@@ -38,16 +41,35 @@ def create_aux_dataframe(dataset_path):
 
 def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True,
                            undersample_ratio=None, oversample_ratio=None, random_state=None):
-    '''
-
-    :param under_sample_ratio:
-    :param dataset_source_path:
-    :param test_size:
-    :param valid_size:
-    :param shuffle:
-    :param random_state:
-    :return:
-    '''
+    """
+    Generates the dataset train, test and validation splits as pandas.DataFrames. First the test split is taken from
+    the whole dataset, preserving the original classes distribution, with stratification. After that, the sampling
+    techniques are applied, if the user set them so. The manipulated data is then split into train and validation
+    datasets.
+    :param dataset_source_path: str or pathlib.Path
+        Path to the dataset directory
+    :param test_size: float
+        test split size as float (example 15% -> 0.15)... calculated with respect to the whole dataset
+    :param valid_size: float
+        validation split size as float (example 15% -> 0.15)... calculated with respect to the train split data, after
+        undersampling or oversampling (controlled by the user) if needed
+    :param shuffle: bool
+        sklearn.model_selection.train_test_split "shuffle" parameter... wether or not to shuffle the data before splitting
+    :param undersample_ratio: float
+        parameter to control the undersampling technique... if it's a binary classification problem, it is the same of
+        imblearn.under_sampling.RandomUnderSampler "sampling_strategy"... if it's a multiclass classification, then it
+        is used to calculate the maximum number of images to under sample from the majority classes related to the
+        minority classes
+    :param oversample_ratio: float
+        parameter to control the oversampling technique... if it's a binary classification problem, it is the same of
+        imblearn.over_sampling.RandomOverSampler "sampling_strategy"... if it's a multiclass classification, then it
+        is used to calculate the minimum number of images to over sample from the minority classes related to the
+        majority classes
+    :param random_state: int
+        used for reproducibility
+    :return: tuple
+        train pandas.DataFrame, test pandas.DataFrame and validation pandas.DataFrame
+    """
 
     df = create_aux_dataframe(dataset_source_path)
     train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state,
@@ -100,6 +122,13 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
 
 
 def filter_binary_labels(image, label):
+    """
+    Used if you need to transform a matrix of one hot encoded labels of a binary classification problem into a label
+    vector of 0 and 1.
+    :param image: tf.Tensor batch
+    :param label: tf.Tensor batch
+    :return: tuple
+    """
     return image, tf.expand_dims(tf.math.argmax(label, axis=1), axis=1)
 
 
@@ -160,6 +189,10 @@ def create_split(split, destination_path):
 
 
 def get_platform_shell():
+    """
+    Used for subprocess.Run "shell" parameter. Changes behavior between Windows and Unix platforms.
+    :return: bool
+    """
     if os.name == 'nt':
         shell = True
     elif os.name == 'posix':
@@ -168,6 +201,11 @@ def get_platform_shell():
 
 
 def true_or_false(arg):
+    """
+    Used for boolean arg parsing
+    :param arg: str
+    :return: bool
+    """
     upper_arg = str(arg).upper()
     if 'TRUE'.startswith(upper_arg):
        return True
