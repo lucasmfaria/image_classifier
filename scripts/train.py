@@ -10,11 +10,11 @@ import sys
 import argparse
 try:
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
-    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg
-    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset
+    from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false
 
 parser = argparse.ArgumentParser()
 
@@ -44,7 +44,7 @@ DEFAULT_VALID_PATH = Path(__file__).parent.parent / 'data' / 'valid'
 parser.add_argument('--valid_path', type=str, help='Path of the validation dataset', default=DEFAULT_VALID_PATH)
 parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist]',
                     default=None)
-parser.add_argument('--unit_test_dataset', type=bool, help='Whether or not to load only a few images, only for unit testing',
+parser.add_argument('--unit_test_dataset', type=true_or_false, help='Whether or not to load only a few images, only for unit testing',
                     default=False)
 
 args = parser.parse_args()

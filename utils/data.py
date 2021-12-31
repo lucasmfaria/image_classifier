@@ -8,6 +8,7 @@ import shutil
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import uuid
+import argparse
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
 
@@ -164,3 +165,13 @@ def get_platform_shell():
     elif os.name == 'posix':
         shell = False
     return shell
+
+
+def true_or_false(arg):
+    upper_arg = str(arg).upper()
+    if 'TRUE'.startswith(upper_arg):
+       return True
+    elif 'FALSE'.startswith(upper_arg):
+       return False
+    else:
+       raise argparse.ArgumentError(arg)

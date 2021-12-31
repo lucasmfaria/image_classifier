@@ -39,7 +39,6 @@ if radio_button == 'Create splits':
                 st.write("Expression used: " + ' '.join(expression))
                 st.write("...")
                 p = subprocess.run(expression, shell=get_platform_shell(), check=True)
-                # print('expression ---------------', expression) # for debug
                 st.write("Finished running **create_splits.py** ✔️")
 
 elif radio_button == 'Train':
@@ -70,7 +69,6 @@ elif radio_button == 'Train':
             st.write("Expression used: " + ' '.join(expression))
             st.write("...")
             p = subprocess.run(expression, shell=get_platform_shell(), check=True)
-            # print('expression ---------------', expression) # for debug
             st.write("Finished running **train.py** ✔️")
 
 elif radio_button == 'Test':

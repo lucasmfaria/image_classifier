@@ -15,10 +15,11 @@ DEFAULT_DATASET_SOURCE_PATH = Path(__file__).parent.parent / 'data' / 'dataset'
 parser.add_argument('--dataset_path', type=str, help='Image dataset source path', default=DEFAULT_DATASET_SOURCE_PATH)
 DEFAULT_SPLITS_DESTINATION = Path(__file__).parent.parent / 'data'
 parser.add_argument('--splits_dest_path', type=str, help='Splits destination path', default=DEFAULT_SPLITS_DESTINATION)
-parser.add_argument('--undersample_ratio', type=float, help='Ratio used to under sample the majority classes',
+group = parser.add_mutually_exclusive_group()  # oversample_ratio and undersample_ratio are mutually exclusives
+group.add_argument('--oversample_ratio', type=float, help='Ratio used to over sample the minority classes',
                     default=None)
-parser.add_argument('--oversample_ratio', type=float, help='Ratio used to over sample the minority classes',
-                    default=None)
+group.add_argument('--undersample_ratio', type=float, help='Ratio used to under sample the majority classes',
+                   default=None)
 parser.add_argument('--seed', type=int, help='Seed number for reproducibility', default=None)
 args = parser.parse_args()
 
