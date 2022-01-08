@@ -10,6 +10,7 @@ radio_button = st.sidebar.radio('select', ['Create splits', 'Train', 'Test'])
 
 if radio_button == 'Create splits':
     # TODO - include dataset_path, splits_dest_path, seed
+    # TODO - show stats from the dataset splits and the full dataset
     st.write('''
     Use these parameters to split your data into **train**, **test** and **validation** splits
     
@@ -22,6 +23,7 @@ if radio_button == 'Create splits':
         sampling_check = st.checkbox("Sampling")
         if sampling_check:
             sampling_type = st.radio("Sampling", ['undersample', 'oversample'])
+            # TODO - get min sampling ratio based on the dataset or show the exception to the user ("please raise/under the ratio")
             sampling_ratio = st.slider(sampling_type + " ratio %", value=50, min_value=1, max_value=100) / 100.
 
     with col2:
@@ -43,6 +45,7 @@ if radio_button == 'Create splits':
 
 elif radio_button == 'Train':
     # TODO - include train_path, valid_path
+     # TODO - delete before new training
     st.write('''
         Use these parameters to **train your neural network**
         
@@ -74,6 +77,7 @@ elif radio_button == 'Train':
 elif radio_button == 'Test':
     # TODO - improve results output style in streamlit
     # TODO - include train_path, valid_path
+    # TODO - check if trained
     st.write('''
         Use these parameters to **test your neural network**
         
