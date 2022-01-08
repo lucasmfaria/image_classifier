@@ -115,7 +115,7 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
         train.index = train.file
         train.drop(['file'], axis=1, inplace=True)
 
-    valid_split = valid_size / (1 - test_size)
+    valid_split = valid_size / (1 - test_size)  # TODO: check if its correct
     train, valid = train_test_split(train, test_size=valid_split, shuffle=shuffle, random_state=random_state,
                                     stratify=train.y)
     return train, test, valid
@@ -169,6 +169,10 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
 
 
 def delete_folder(destination_path):
+    """
+    Deletes the last train, test and validation splits directories, if they already exist.
+    :param destination_path: str or pathlib.Path
+    """
     if Path(destination_path).exists():
         print('--------------DELETE ' + destination_path.name.upper() + ' SPLIT------------')
         for directory in destination_path.iterdir():
@@ -177,6 +181,12 @@ def delete_folder(destination_path):
 
 
 def create_split(split, destination_path):
+    """
+    Creates the dataset split given by the pandas.DataFrame. Each image given by the DataFrame is copied to the
+    split destination directory, together with its class information.
+    :param split: pandas.DataFrame
+    :param destination_path: pathlib.Path
+    """
     print('--------------COPY ' + destination_path.name.upper() + ' SPLIT------------')
     for idx, _ in tqdm(split.iterrows(), total=split.shape[0]):
         destination = (destination_path / idx.parent.name) / idx.name

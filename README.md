@@ -1,7 +1,14 @@
 # Image Classifier
 
-> Convolutional Neural Network for image classification (binary or multiclass). Uses transfer learning with pre-trained
-> VGG16 model. Tested with python 3.9.
+Need to train **your own** Image Classifier, with **your own dataset**, but don't know how to? Or maybe you know how to do it, 
+but don't want to worry about neural network implementation details? Ok, this is your place.
+
+The code is built to train a **ConvNet (Convolutional Neural Network) based image classifier**. Probably you won't 
+need to change parameters, but even if you need to (because the classifier didn't get a good score) they are easy to 
+change.
+
+The code covers image classification for **binary or multiclass problems**. It uses **transfer learning** with pre-trained 
+**VGG16** model. Tested with python 3.9 (so far).
 
 ## 💻 Prerequisites
 
