@@ -11,6 +11,7 @@ import uuid
 import argparse
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
+import streamlit as st
 
 DEFAULT_TRAIN_PATH = Path(__file__).resolve().parent.parent / 'data' / 'train'
 DEFAULT_VALID_PATH = Path(__file__).resolve().parent.parent / 'data' / 'valid'
@@ -230,27 +231,37 @@ def test_dataset_definition(test_path=DEFAULT_TEST_PATH, sample_dataset=None, ba
     return test_ds, class_names
 
 
-def delete_folder(destination_path):
+def delete_folder(destination_path, streamlit_callbacks=None):
     """
     Deletes the last train, test and validation splits directories, if they already exist.
     :param destination_path: str or pathlib.Path
     """
     if Path(destination_path).exists():
-        print('--------------DELETE ' + destination_path.name.upper() + ' SPLIT------------')
+        out_text = '--------------DELETE ' + destination_path.name.upper() + ' SPLIT------------'
+        print(out_text)
+        if streamlit_callbacks is not None:  # used only with streamlit web application
+            streamlit_callbacks[0](out_text)
         for directory in destination_path.iterdir():
             if directory.is_dir():
                 shutil.rmtree(directory)
 
 
-def create_split(split, destination_path):
+def create_split(split, destination_path, streamlit_callbacks=None):
     """
     Creates the dataset split given by the pandas.DataFrame. Each image given by the DataFrame is copied to the
     split destination directory, together with its class information.
     :param split: pandas.DataFrame
     :param destination_path: pathlib.Path
     """
-    print('--------------COPY ' + destination_path.name.upper() + ' SPLIT------------')
-    for idx, _ in tqdm(split.iterrows(), total=split.shape[0]):
+    out_text = '--------------COPY ' + destination_path.name.upper() + ' SPLIT------------'
+    print(out_text)
+    if streamlit_callbacks is not None:  # used only with streamlit web application
+        streamlit_callbacks[0](out_text)
+        placeholder = st.empty()
+    for int_idx, (idx, _) in tqdm(enumerate(split.iterrows()), total=split.shape[0]):
+        if streamlit_callbacks is not None:  # used only with streamlit web application
+            with placeholder:
+                streamlit_callbacks[1](int_idx/split.shape[0])
         destination = (destination_path / idx.parent.name) / idx.name
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         if destination.exists():  # used in oversampling case

@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 
 def main(dataset_path=DEFAULT_DATASET_SOURCE_PATH, splits_destination_path=DEFAULT_SPLITS_DESTINATION, test_size=0.15,
-         valid_size=0.15, undersample_ratio=None, oversample_ratio=None, seed=None):
+         valid_size=0.15, undersample_ratio=None, oversample_ratio=None, seed=None, streamlit_callbacks=None):
     # create the splits dataframes:
     x_train, x_test, x_valid = train_test_valid_split(Path(dataset_path), test_size=test_size,
                                                       valid_size=valid_size,
@@ -35,8 +35,8 @@ def main(dataset_path=DEFAULT_DATASET_SOURCE_PATH, splits_destination_path=DEFAU
     # delete and copy the images:
     for split in splits:
         destination_path = Path(splits_destination_path) / split[0]
-        delete_folder(destination_path)
-        create_split(split[1], destination_path)
+        delete_folder(destination_path, streamlit_callbacks=streamlit_callbacks)
+        create_split(split[1], destination_path, streamlit_callbacks=streamlit_callbacks)
 
 
 if __name__ == '__main__':

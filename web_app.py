@@ -2,6 +2,7 @@ import streamlit as st
 import subprocess
 from pathlib import Path
 from utils.data import get_platform_shell
+from scripts.create_splits import main as create_splits_main
 
 st.title('Image Classification APP')
 
@@ -33,14 +34,17 @@ if radio_button == 'Create splits':
 
             submitted = st.form_submit_button("Create splits")
             if submitted:
-                expression = ['python', str(Path(r'./scripts/create_splits.py')), '--test_size', str(test_size),
-                              '--valid_size', str(valid_size)]
-                if sampling_ratio is not None:
-                    expression = expression + ['--' + str(sampling_type) + '_ratio', str(sampling_ratio)]
                 st.write("Running script **create_splits.py**")
-                st.write("Expression used: " + ' '.join(expression))
-                st.write("...")
-                p = subprocess.run(expression, shell=get_platform_shell(), check=True)
+                if sampling_ratio is not None:
+                    if sampling_type == 'undersample':
+                        create_splits_main(test_size=test_size, valid_size=valid_size, undersample_ratio=sampling_ratio,
+                                           streamlit_callbacks=(st.write, st.progress))
+                    elif sampling_type == 'oversample':
+                        create_splits_main(test_size=test_size, valid_size=valid_size, oversample_ratio=sampling_ratio,
+                                           streamlit_callbacks=(st.write, st.progress))
+                else:
+                    create_splits_main(test_size=test_size, valid_size=valid_size, streamlit_callbacks=(st.write,
+                                                                                                        st.progress))
                 st.write("Finished running **create_splits.py** ✔️")
 
 elif radio_button == 'Train':
