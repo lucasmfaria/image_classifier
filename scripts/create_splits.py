@@ -23,19 +23,23 @@ group.add_argument('--undersample_ratio', type=float, help='Ratio used to under 
 parser.add_argument('--seed', type=int, help='Seed number for reproducibility', default=None)
 args = parser.parse_args()
 
-dataset_path = Path(args.dataset_path)
-splits_destination_path = Path(args.splits_dest_path)
-undersample_ratio = args.undersample_ratio
-oversample_ratio = args.oversample_ratio
-seed = args.seed
 
-X_train, X_test, X_valid = train_test_valid_split(dataset_path, test_size=args.test_size, valid_size=args.valid_size,
-                                                  undersample_ratio=undersample_ratio,
-                                                  oversample_ratio=oversample_ratio, random_state=seed)
+def main(dataset_path=DEFAULT_DATASET_SOURCE_PATH, splits_destination_path=DEFAULT_SPLITS_DESTINATION, test_size=0.15,
+         valid_size=0.15, undersample_ratio=None, oversample_ratio=None, seed=None):
+    # create the splits dataframes:
+    x_train, x_test, x_valid = train_test_valid_split(Path(dataset_path), test_size=test_size,
+                                                      valid_size=valid_size,
+                                                      undersample_ratio=undersample_ratio,
+                                                      oversample_ratio=oversample_ratio, random_state=seed)
+    splits = [('train', x_train), ('test', x_test), ('valid', x_valid)]
+    # delete and copy the images:
+    for split in splits:
+        destination_path = Path(splits_destination_path) / split[0]
+        delete_folder(destination_path)
+        create_split(split[1], destination_path)
 
-splits = [('train', X_train), ('test', X_test), ('valid', X_valid)]
 
-for split in splits:
-    destination_path = Path(splits_destination_path) / split[0]
-    delete_folder(destination_path)
-    create_split(split[1], destination_path)
+if __name__ == '__main__':
+    main(dataset_path=Path(args.dataset_path), splits_destination_path=args.splits_dest_path, test_size=args.test_size,
+         valid_size=args.valid_size, undersample_ratio=args.undersample_ratio, oversample_ratio=args.oversample_ratio,
+         seed=args.seed)

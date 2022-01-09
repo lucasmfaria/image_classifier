@@ -44,7 +44,6 @@ parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset i
                     default=None)
 parser.add_argument('--unit_test_dataset', type=true_or_false, help='Whether or not to load only a few images, only for unit testing',
                     default=False)
-
 args = parser.parse_args()
 
 # TODO - use flake8 for python style test
