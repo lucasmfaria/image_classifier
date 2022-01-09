@@ -63,17 +63,23 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
          img_height=224, img_width=224, seed=None, unit_test_dataset=False, n_hidden=512, base_lr=0.001,
          log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_epochs=30, fine_tuning_epochs=30,
          fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights'):
+
+    # load the dataset:
     train_ds, valid_ds, class_names = dataset_definition(train_path=Path(train_path), valid_path=Path(valid_path),
                                                          sample_dataset=sample_dataset, batch_size=batch_size,
                                                          img_height=img_height, img_width=img_width, seed=seed,
                                                          unit_test_dataset=unit_test_dataset)
+    # build the initial model with frozen VGG16 layers:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
                           seed=seed, base_lr=base_lr)
+    # create the callback functions:
     callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path))
+    # train the model:
     model, history = train(model=model, train_ds=train_ds, valid_ds=valid_ds, n_classes=len(class_names),
                            base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs,
                            fine_tune_at_layer=fine_tune_at_layer, fine_tuning_lr=fine_tuning_lr,
                            callbacks=callbacks, seed=seed)
+    # save the model
     model.save_weights(Path(checkpoints_path) / final_model_name)
 
 
