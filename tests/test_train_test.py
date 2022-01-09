@@ -24,7 +24,7 @@ def test_train_command():
 # TODO - define simple/dummy dataset to train only for testing
 def test_test_command():
     p = subprocess.run(['python', str(Path(r'./scripts/test.py')), '--sample_dataset', 'mnist',
-                        '--unit_test_dataset', 'True'], shell=True, check=True)
+                        '--unit_test_dataset', 'True'], shell=get_platform_shell(), check=True)
     assert p.returncode == 0
     p = subprocess.run(['python', str(Path(r'./scripts/delete_last_train.py'))], shell=get_platform_shell(),
                        check=True)  # delete after model testing

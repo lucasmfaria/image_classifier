@@ -63,4 +63,6 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
 
 
 if __name__ == '__main__':
-    main()
+    main(test_path=Path(args.test_path), sample_dataset=args.sample_dataset, batch_size=args.batch_size,
+         img_height=args.img_height, img_width=args.img_width, unit_test_dataset=args.unit_test_dataset,
+         n_hidden=args.n_hidden, weights_path=Path(args.weights_path))
