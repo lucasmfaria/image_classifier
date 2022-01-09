@@ -5,13 +5,13 @@ try:
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg, loss_definition, initial_model, \
         callbacks_definition, train
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
-        dataset_definition
+        train_valid_dataset_definition
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, freeze_all_vgg, unfreeze_last_vgg, loss_definition, initial_model, \
         callbacks_definition, train
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
-        dataset_definition
+        train_valid_dataset_definition
 
 parser = argparse.ArgumentParser()
 
@@ -64,10 +64,11 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
          fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights'):
 
     # load the dataset:
-    train_ds, valid_ds, class_names = dataset_definition(train_path=Path(train_path), valid_path=Path(valid_path),
-                                                         sample_dataset=sample_dataset, batch_size=batch_size,
-                                                         img_height=img_height, img_width=img_width, seed=seed,
-                                                         unit_test_dataset=unit_test_dataset)
+    train_ds, valid_ds, class_names = train_valid_dataset_definition(train_path=Path(train_path),
+                                                                     valid_path=Path(valid_path),
+                                                                     sample_dataset=sample_dataset, batch_size=batch_size,
+                                                                     img_height=img_height, img_width=img_width,
+                                                                     seed=seed, unit_test_dataset=unit_test_dataset)
     # build the initial model with frozen VGG16 layers:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
                           seed=seed, base_lr=base_lr)

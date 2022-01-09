@@ -14,6 +14,7 @@ from imblearn.over_sampling import RandomOverSampler
 
 DEFAULT_TRAIN_PATH = Path(__file__).resolve().parent.parent / 'data' / 'train'
 DEFAULT_VALID_PATH = Path(__file__).resolve().parent.parent / 'data' / 'valid'
+DEFAULT_TEST_PATH = Path(__file__).resolve().parent.parent / 'data' / 'test'
 
 
 def create_aux_dataframe(dataset_path):
@@ -171,8 +172,8 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
     # TODO - include other sample datasets
 
 
-def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_dataset=None, batch_size=64,
-                       img_height=224, img_width=224, seed=None, unit_test_dataset=False):
+def train_valid_dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_dataset=None,
+                                   batch_size=64, img_height=224, img_width=224, seed=None, unit_test_dataset=False):
     if sample_dataset in ['mnist']:  # loads a sample dataset for user/unit testing
         train_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
                                                                  img_height=img_height, img_width=img_width)
@@ -204,6 +205,29 @@ def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_P
         valid_ds = valid_ds.take(5)
 
     return train_ds, valid_ds, class_names
+
+
+def test_dataset_definition(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_height=224,
+                            img_width=224, unit_test_dataset=False):
+    if sample_dataset in ['mnist']:  # loads a sample dataset for user testing
+        _, test_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
+                                                         img_height=img_height, img_width=img_width)
+    else:
+        test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(img_height, img_width),
+                                                                      batch_size=batch_size, shuffle=False,
+                                                                      label_mode='categorical')
+
+        class_names = test_ds.class_names
+        AUTOTUNE = tf.data.experimental.AUTOTUNE
+
+        if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
+            test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+        test_ds = optimize_dataset(test_ds)
+
+    if unit_test_dataset:  # take only some elements of dataset, only used for unit testing
+        test_ds = test_ds.take(5)
+
+    return test_ds, class_names
 
 
 def delete_folder(destination_path):
@@ -256,8 +280,8 @@ def true_or_false(arg):
     """
     upper_arg = str(arg).upper()
     if 'TRUE'.startswith(upper_arg):
-       return True
+        return True
     elif 'FALSE'.startswith(upper_arg):
-       return False
+        return False
     else:
-       raise argparse.ArgumentError(arg)
+        raise argparse.ArgumentError(arg)
