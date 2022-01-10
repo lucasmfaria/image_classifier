@@ -105,6 +105,7 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
                 super().__init__()
                 self.state = 'base'
                 self.base_epochs = base_epochs
+                self.actual_base_epochs = 0
                 self.fine_tuning_epochs = fine_tuning_epochs
                 self.placeholders = []
                 self.epoch = 0
@@ -121,15 +122,16 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
                 streamlit_callbacks[0]("###### FINISHED " + self.state.upper() + " TRAINING")
                 if self.state == 'base':
                     self.state = 'fine_tuning'
-                    self.base_epochs = self.epoch + 1  # keep the epoch number even if early stopped
+                    self.actual_base_epochs = self.epoch + 1  # keep the epoch number even if early stopped
 
             def on_epoch_end(self, epoch, logs=None):
-                print(self.state)
                 self.epoch = epoch
                 with self.placeholders[-1]:
-                    epoch = epoch if self.state == 'base' else (epoch - self.base_epochs)
+                    epoch = epoch if self.state == 'base' else (epoch - self.actual_base_epochs)
                     streamlit_callbacks[1](
-                        (epoch + 1) / (self.base_epochs if self.state == 'base' else self.fine_tuning_epochs))
+                        (epoch + 1) / (self.base_epochs if self.state == 'base' else (self.fine_tuning_epochs +
+                                                                                      (self.base_epochs -
+                                                                                       self.actual_base_epochs))))
         callbacks = callbacks + [ProgressBarCallback(base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs)]
     return callbacks
 

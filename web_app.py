@@ -71,7 +71,6 @@ elif radio_button == 'Train':
         submitted = st.form_submit_button("Train")
         if submitted:
             st.write("Running script **train.py**")
-            st.write("...")
             train_main(img_height=img_height, img_width=img_width, batch_size=batch_size, n_hidden=n_hidden,
                        base_lr=base_lr, fine_tuning_lr=fine_tuning_lr, base_epochs=base_epochs,
                        fine_tuning_epochs=fine_tuning_epochs, streamlit_callbacks=(st.write, st.progress))
