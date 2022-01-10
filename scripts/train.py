@@ -61,7 +61,7 @@ args = parser.parse_args()
 def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_dataset=None, batch_size=64,
          img_height=224, img_width=224, seed=None, unit_test_dataset=False, n_hidden=512, base_lr=0.001,
          log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_epochs=30, fine_tuning_epochs=30,
-         fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights'):
+         fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights', streamlit_callbacks=None):
 
     # load the dataset:
     train_ds, valid_ds, class_names = train_valid_dataset_definition(train_path=Path(train_path),
@@ -73,7 +73,9 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
                           seed=seed, base_lr=base_lr)
     # create the callback functions:
-    callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path))
+    callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path),
+                                     streamlit_callbacks=streamlit_callbacks, base_epochs=base_epochs,
+                                     fine_tuning_epochs=fine_tuning_epochs)
     # train the model:
     model, history = train(model=model, train_ds=train_ds, valid_ds=valid_ds, n_classes=len(class_names),
                            base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs,

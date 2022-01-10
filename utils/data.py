@@ -240,7 +240,8 @@ def delete_folder(destination_path, streamlit_callbacks=None):
         out_text = '--------------DELETE ' + destination_path.name.upper() + ' SPLIT------------'
         print(out_text)
         if streamlit_callbacks is not None:  # used only with streamlit web application
-            streamlit_callbacks[0](out_text)
+            markdown_text = '###### DELETE ' + destination_path.name.upper() + ' SPLIT'
+            streamlit_callbacks[0](markdown_text)
         for directory in destination_path.iterdir():
             if directory.is_dir():
                 shutil.rmtree(directory)
@@ -256,7 +257,8 @@ def create_split(split, destination_path, streamlit_callbacks=None):
     out_text = '--------------COPY ' + destination_path.name.upper() + ' SPLIT------------'
     print(out_text)
     if streamlit_callbacks is not None:  # used only with streamlit web application
-        streamlit_callbacks[0](out_text)
+        markdown_text = '###### COPY ' + destination_path.name.upper() + ' SPLIT'
+        streamlit_callbacks[0](markdown_text)
         placeholder = st.empty()
     for int_idx, (idx, _) in tqdm(enumerate(split.iterrows()), total=split.shape[0]):
         if streamlit_callbacks is not None:  # used only with streamlit web application

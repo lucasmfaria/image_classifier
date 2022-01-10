@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.applications import vgg16
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+import streamlit as st
 
 DEFAULT_CHECKPOINTS_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'checkpoints'
 DEFAULT_LOG_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'logs'
@@ -89,13 +90,47 @@ def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=N
     return model
 
 
-def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
+def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH,
+                         streamlit_callbacks=None, base_epochs=30, fine_tuning_epochs=30):
     tb = TensorBoard(log_dir=log_path)
     checkpoint = ModelCheckpoint(checkpoints_path / 'train_{epoch}.tf', verbose=1, save_weights_only=True,
                                  save_best_only=True, monitor='val_loss')
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1)
+
     callbacks = [tb, checkpoint, reduce_lr, early_stopping]
+    if streamlit_callbacks is not None:  # used only with streamlit web application
+        class ProgressBarCallback(tf.keras.callbacks.Callback):
+            def __init__(self, base_epochs, fine_tuning_epochs):
+                super().__init__()
+                self.state = 'base'
+                self.base_epochs = base_epochs
+                self.fine_tuning_epochs = fine_tuning_epochs
+                self.placeholders = []
+                self.epoch = 0
+
+            def on_train_begin(self, logs=None):
+                streamlit_callbacks[0]("###### STARTED " + self.state.upper() + " TRAINING")
+                self.placeholders.append(st.empty())
+                with self.placeholders[-1]:
+                    streamlit_callbacks[1](0.0)
+
+            def on_train_end(self, logs=None):
+                with self.placeholders[-1]:
+                    streamlit_callbacks[1](1.0)
+                streamlit_callbacks[0]("###### FINISHED " + self.state.upper() + " TRAINING")
+                if self.state == 'base':
+                    self.state = 'fine_tuning'
+                    self.base_epochs = self.epoch + 1  # keep the epoch number even if early stopped
+
+            def on_epoch_end(self, epoch, logs=None):
+                print(self.state)
+                self.epoch = epoch
+                with self.placeholders[-1]:
+                    epoch = epoch if self.state == 'base' else (epoch - self.base_epochs)
+                    streamlit_callbacks[1](
+                        (epoch + 1) / (self.base_epochs if self.state == 'base' else self.fine_tuning_epochs))
+        callbacks = callbacks + [ProgressBarCallback(base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs)]
     return callbacks
 
 
@@ -115,5 +150,5 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
         tf.random.set_seed(seed)
 
     history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=callbacks,
-                        initial_epoch=history.epoch[-1])
+                        initial_epoch=history.epoch[-1] + 1)
     return model, history

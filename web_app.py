@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from utils.data import get_platform_shell
 from scripts.create_splits import main as create_splits_main
+from scripts.train import main as train_main
 
 st.title('Image Classification APP')
 
@@ -69,13 +70,11 @@ elif radio_button == 'Train':
 
         submitted = st.form_submit_button("Train")
         if submitted:
-            expression = ['python', str(Path(r'./scripts/train.py')), '--img_height', str(img_height),
-                          '--img_width', str(img_width), '--batch_size', str(batch_size), '--n_hidden',
-                          str(n_hidden), '--base_lr', str(base_lr), '--fine_tuning_lr', str(fine_tuning_lr)]
             st.write("Running script **train.py**")
-            st.write("Expression used: " + ' '.join(expression))
             st.write("...")
-            p = subprocess.run(expression, shell=get_platform_shell(), check=True)
+            train_main(img_height=img_height, img_width=img_width, batch_size=batch_size, n_hidden=n_hidden,
+                       base_lr=base_lr, fine_tuning_lr=fine_tuning_lr, base_epochs=base_epochs,
+                       fine_tuning_epochs=fine_tuning_epochs, streamlit_callbacks=(st.write, st.progress))
             st.write("Finished running **train.py** ✔️")
 
 elif radio_button == 'Test':
