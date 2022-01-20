@@ -1,8 +1,5 @@
 import pandas as pd
 import streamlit as st
-import subprocess
-from pathlib import Path
-from utils.data import get_platform_shell
 from scripts.create_splits import main as create_splits_main
 from scripts.train import main as train_main
 from scripts.test import main as test_main
@@ -52,7 +49,7 @@ if radio_button == 'Create splits':
 
 elif radio_button == 'Train':
     # TODO - include train_path, valid_path
-     # TODO - delete before new training
+    # TODO - delete before new training
     st.write('''
         Use these parameters to **train your neural network**
         
