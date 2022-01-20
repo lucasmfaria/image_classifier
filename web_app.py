@@ -1,9 +1,11 @@
+import pandas as pd
 import streamlit as st
 import subprocess
 from pathlib import Path
 from utils.data import get_platform_shell
 from scripts.create_splits import main as create_splits_main
 from scripts.train import main as train_main
+from scripts.test import main as test_main
 
 st.title('Image Classification APP')
 
@@ -77,7 +79,6 @@ elif radio_button == 'Train':
             st.write("Finished running **train.py** ✔️")
 
 elif radio_button == 'Test':
-    # TODO - improve results output style in streamlit
     # TODO - include train_path, valid_path
     # TODO - check if trained
     st.write('''
@@ -93,15 +94,10 @@ elif radio_button == 'Test':
 
         submitted = st.form_submit_button("Test")
         if submitted:
-            expression = ['python', str(Path(r'./scripts/test.py')), '--img_height', str(img_height),
-                          '--img_width', str(img_width), '--batch_size', str(batch_size), '--n_hidden',
-                          str(n_hidden)]
             st.write("Running script **test.py**")
-            st.write("Expression used: " + ' '.join(expression))
-            st.write("...")
-            p = subprocess.run(expression, shell=get_platform_shell(), check=True, stdout=subprocess.PIPE)
-            results_text = p.stdout.decode()
-            results_text = results_text[results_text.find('%') + 1:]
-            st.write("Results:")
-            st.write(results_text)
+            classification_report_dict, df_confusion_matrix = test_main(batch_size=batch_size, img_height=img_height,
+                                                                          img_width=img_width, n_hidden=n_hidden,
+                                                                          return_results=True)
+            st.write(pd.DataFrame(classification_report_dict).T)
+            st.write(df_confusion_matrix)
             st.write("Finished running **test.py** ✔️")

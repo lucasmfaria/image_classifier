@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 
 def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_height=224, img_width=224,
-         unit_test_dataset=False, n_hidden=512, weights_path=DEFAULT_WEIGHTS_PATH):
+         unit_test_dataset=False, n_hidden=512, weights_path=DEFAULT_WEIGHTS_PATH, return_results=False):
     test_ds, class_names = test_dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
                                                    batch_size=batch_size, img_height=img_height, img_width=img_width,
                                                    unit_test_dataset=unit_test_dataset)
@@ -55,11 +55,16 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         y_pred = np.argmax(y_pred, axis=1)
         y_true = np.argmax(y_true.numpy(), axis=1)
 
-    print(classification_report(y_true, y_pred, target_names=class_names, digits=2))
-
+    print(classification_report(y_true, y_pred, target_names=class_names, digits=2))  # always print on console
     pred_labels = [('PRED_' + class_name) for class_name in class_names]
     real_labels = [('REAL_' + class_name) for class_name in class_names]
-    print(pd.DataFrame(confusion_matrix(y_true, y_pred), columns=pred_labels, index=real_labels))
+    df_confusion_matrix = pd.DataFrame(confusion_matrix(y_true, y_pred), columns=pred_labels, index=real_labels)
+    print(df_confusion_matrix)
+
+    if return_results:
+        classification_report_dict = classification_report(y_true, y_pred, target_names=class_names, digits=2,
+                                                             output_dict=return_results)
+        return classification_report_dict, df_confusion_matrix
 
 
 if __name__ == '__main__':
