@@ -3,7 +3,12 @@ import os
 import shutil
 import argparse
 import pandas as pd
-from test import main as test_main
+import sys
+try:
+    from scripts.test import main as test_main
+except ModuleNotFoundError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from scripts.test import main as test_main
 
 parser = argparse.ArgumentParser()
 

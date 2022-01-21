@@ -3,11 +3,15 @@ import streamlit as st
 from scripts.create_splits import main as create_splits_main
 from scripts.train import main as train_main
 from scripts.test import main as test_main
+from scripts.save_last_train import main as save_model_main
+from tensorflow.python.framework.errors import NotFoundError
+
 
 st.title('Image Classification APP')
 
 st.sidebar.title('options')
 radio_button = st.sidebar.radio('select', ['Create splits', 'Train', 'Test'])
+save_button = st.sidebar.button('Save Trained Model')
 
 if radio_button == 'Create splits':
     # TODO - include dataset_path, splits_dest_path, seed
@@ -98,3 +102,10 @@ elif radio_button == 'Test':
             st.write(pd.DataFrame(classification_report_dict).T)
             st.write(df_confusion_matrix)
             st.write("Finished running **test.py** ✔️")
+
+if save_button:
+    try:
+        save_model_main()
+        st.sidebar.write('**MODEL SAVED** ✔️')
+    except NotFoundError:
+        st.sidebar.write("**DIDN'T FIND THE TRAINED MODEL FILE**")
