@@ -12,7 +12,7 @@ need to change parameters, but even if you need to (because the classifier didn'
 change.
 
 The code covers image classification for **binary or multiclass problems**. It uses **transfer learning** with pre-trained 
-**VGG16** model. Tested with python 3.9 (so far).
+**VGG16** model. Tested with python 3.9 and 3.8 (so far).
 
 ## 💻 Prerequisites
 
@@ -45,7 +45,7 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 
 ## 🔨 Windows users
 You have the option to just run the "web_app.bat" file. It will create the virtual env and download the requirements for you.
-You need to have python installed (version 3.9) and pointed by "PATH" environment variable in order to follow the steps:
+You need to have python installed (version 3.9 or 3.8) and pointed by "PATH" environment variable in order to follow the steps:
 
 ```
 - Move your image dataset into the folder 'data', with the classes separation. Final directory 
