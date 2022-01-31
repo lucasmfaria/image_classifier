@@ -38,10 +38,7 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
     test_ds, class_names = test_dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
                                                    batch_size=batch_size, img_height=img_height, img_width=img_width,
                                                    unit_test_dataset=unit_test_dataset)
-    model = make_model(n_classes=len(class_names), n_hidden=n_hidden)
-    model.load_weights(Path(weights_path))
-    loss = loss_definition(n_classes=len(class_names))
-    model.compile(loss=loss, metrics=['accuracy'])
+    model = tf.keras.models.load_model(Path(weights_path))
     metrics = model.evaluate(test_ds)
     print('Loss: {} --------- Accuracy: {}%'.format(metrics[0], np.round(metrics[1] * 100, 2)))
 

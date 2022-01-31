@@ -82,7 +82,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
                            fine_tune_at_layer=fine_tune_at_layer, fine_tuning_lr=fine_tuning_lr,
                            callbacks=callbacks, seed=seed)
     # save the model
-    model.save_weights(Path(checkpoints_path) / final_model_name)
+    model.save(Path(checkpoints_path) / final_model_name, save_format='h5')
 
 
 if __name__ == '__main__':

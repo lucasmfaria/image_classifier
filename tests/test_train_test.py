@@ -21,6 +21,8 @@ def test_train_command():
     assert p.returncode == 0
 
 
+# TODO - include tests inside docker container
+# TODO - include tests for each function, not only the command line scripts
 # TODO - define simple/dummy dataset to train only for testing
 def test_test_command():
     p = subprocess.run(['python', str(Path(r'./scripts/test.py')), '--sample_dataset', 'mnist',
