@@ -1,4 +1,7 @@
 # Image Classifier
+[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
+[![Tensorflow](https://badges.aleen42.com/src/tensorflow.svg)](https://www.tensorflow.org)
+
 
 Need to train **your own** Image Classifier, with **your own dataset**, but don't know how to? Or maybe you know how to do it, 
 but don't want to worry about neural network implementation details? Ok, this is your place.
