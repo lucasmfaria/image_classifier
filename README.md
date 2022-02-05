@@ -15,10 +15,17 @@ The code covers image classification for **binary or multiclass problems**. It u
 **VGG16** model. Tested with python 3.9 and 3.8 (so far).
 
 ## 💻 Prerequisites
-
+If you want to run locally, you will need to set a Python environment with:
 ```
 pip install -r requirements.txt
 ```
+Also, you will need to set poppler (as stated in [pdf2image](https://github.com/Belval/pdf2image/blob/master/README.md) docs):
+### Windows
+I recommend [@oschwartz10612 version](https://github.com/oschwartz10612/poppler-windows/releases/).
+Then you need to add the `bin/` folder to [PATH].
+
+### Linux
+Most distros ship with `pdftoppm` and `pdftocairo`. If they are not installed, refer to your package manager to install `poppler-utils`
 
 ## ☕ Using the code
 

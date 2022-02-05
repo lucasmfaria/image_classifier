@@ -25,12 +25,14 @@ args = parser.parse_args()
 
 
 def main(dataset_path=DEFAULT_DATASET_SOURCE_PATH, splits_destination_path=DEFAULT_SPLITS_DESTINATION, test_size=0.15,
-         valid_size=0.15, undersample_ratio=None, oversample_ratio=None, seed=None, streamlit_callbacks=None):
+         valid_size=0.15, undersample_ratio=None, oversample_ratio=None, seed=None, streamlit_callbacks=None,
+         n_pdf_pages='all'):
     # create the splits dataframes:
     x_train, x_test, x_valid = train_test_valid_split(Path(dataset_path), test_size=test_size,
                                                       valid_size=valid_size,
                                                       undersample_ratio=undersample_ratio,
-                                                      oversample_ratio=oversample_ratio, random_state=seed)
+                                                      oversample_ratio=oversample_ratio, random_state=seed,
+                                                      n_pdf_pages=n_pdf_pages)
     splits = [('train', x_train), ('test', x_test), ('valid', x_valid)]
     # delete and copy the images:
     for split in splits:

@@ -52,14 +52,19 @@ def check_pdf(dataset_path):
     return check
 
 
-def extract_images_from_pdf(dataset_path):
-    # TODO - input for how many pages to consider or all pages
+def extract_images_from_pdf(dataset_path, n_pdf_pages='all'):
     output_file_extension = '.jpg'
     directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
     for directory in directory_list:
         pdfs_path_list = [file.resolve() for file in directory.iterdir() if file.suffix == '.pdf']
         for file in pdfs_path_list:
             pages = convert_from_path(file)
+            if n_pdf_pages == 'none':  # exit the function
+                return
+            elif isinstance(n_pdf_pages, int):  # takes only n_pages to extract
+                pages = pages[:n_pdf_pages]
+            elif n_pdf_pages == 'all':  # extracts all pages
+                pass
             for idx, page in enumerate(pages):
                 new_file_name = file.stem + '_pagenum_' + str(idx) + output_file_extension
                 new_file_path = directory.resolve() / new_file_name
@@ -67,7 +72,7 @@ def extract_images_from_pdf(dataset_path):
 
 
 def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True,
-                           undersample_ratio=None, oversample_ratio=None, random_state=None):
+                           undersample_ratio=None, oversample_ratio=None, random_state=None, n_pdf_pages='all'):
     """
     Generates the dataset train, test and validation splits as pandas.DataFrames. First the test split is taken from
     the whole dataset, preserving the original classes distribution, with stratification. After that, the sampling
@@ -94,12 +99,14 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
         majority classes
     :param random_state: int
         used for reproducibility
+    :param n_pdf_pages: int or str
+        If int, it is the max number of pages to extract from PDF. If str, it can be 'all' and 'none'.
     :return: tuple
         train pandas.DataFrame, test pandas.DataFrame and validation pandas.DataFrame
     """
 
     if check_pdf(dataset_source_path):
-        extract_images_from_pdf(dataset_source_path)  # extracts files and save them in directory
+        extract_images_from_pdf(dataset_source_path, n_pdf_pages=n_pdf_pages)  # extracts files and save them in directory
 
     df = create_aux_dataframe(dataset_source_path)
     train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state,

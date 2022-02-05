@@ -5,6 +5,8 @@ from scripts.train import main as train_main
 from scripts.test import main as test_main
 from scripts.save_last_train import main as save_model_main
 from tensorflow.python.framework.errors import NotFoundError
+from utils.data import check_pdf
+from pathlib import Path
 
 
 st.title('Image Classification APP')
@@ -31,6 +33,20 @@ if radio_button == 'Create splits':
             # TODO - get min sampling ratio based on the dataset or show the exception to the user ("please raise/under the ratio")
             sampling_ratio = st.slider(sampling_type + " ratio %", value=50, min_value=1, max_value=100) / 100.
 
+        if check_pdf(Path('./data/dataset')):
+            pdf_check = st.checkbox("Extract images from PDF", value=True)
+        else:
+            pdf_check = st.checkbox("Extract images from PDF", value=False)
+
+        if pdf_check:
+            pdf_type = st.radio("How many pages of PDF to extract?", ["All pages", "Number of pages"])
+            if pdf_type == 'Number of pages':
+                n_pdf_pages = st.slider("Number of pages", value=1, min_value=1, max_value=10)
+            elif pdf_type == 'All pages':
+                n_pdf_pages = 'all'
+        else:
+            n_pdf_pages = 'none'
+
     with col2:
         with st.form("create_splits"):
             test_size = st.slider("Test size %", value=15, min_value=1, max_value=80)/100.
@@ -42,13 +58,14 @@ if radio_button == 'Create splits':
                 if sampling_ratio is not None:
                     if sampling_type == 'undersample':
                         create_splits_main(test_size=test_size, valid_size=valid_size, undersample_ratio=sampling_ratio,
-                                           streamlit_callbacks=(st.write, st.progress))
+                                           streamlit_callbacks=(st.write, st.progress), n_pdf_pages=n_pdf_pages)
                     elif sampling_type == 'oversample':
                         create_splits_main(test_size=test_size, valid_size=valid_size, oversample_ratio=sampling_ratio,
-                                           streamlit_callbacks=(st.write, st.progress))
+                                           streamlit_callbacks=(st.write, st.progress), n_pdf_pages=n_pdf_pages)
                 else:
                     create_splits_main(test_size=test_size, valid_size=valid_size, streamlit_callbacks=(st.write,
-                                                                                                        st.progress))
+                                                                                                        st.progress),
+                                       n_pdf_pages=n_pdf_pages)
                 st.write("Finished running **create_splits.py** ✔️")
 
 elif radio_button == 'Train':
