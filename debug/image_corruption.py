@@ -16,7 +16,7 @@ def main(dataset_source_path=DEFAULT_DATASET_SOURCE_PATH):
         print("Reading class:", directory.resolve())
         total_files = len(list(directory.iterdir()))
         for file in tqdm(directory.iterdir(), total=total_files):
-            if imghdr.what(file) is not None:
+            if file.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.tiff', '.bmp', '.gif']:
                 try:
                     tensor = tf.io.read_file(str(file))
                     _ = tf.image.decode_image(tensor)

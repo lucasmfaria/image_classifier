@@ -4,6 +4,7 @@ from scripts.create_splits import main as create_splits_main
 from scripts.train import main as train_main
 from scripts.test import main as test_main
 from scripts.save_last_train import main as save_model_main
+from debug.image_corruption import main as image_corruption_main
 from tensorflow.python.framework.errors import NotFoundError
 from utils.data import check_pdf
 from pathlib import Path
@@ -12,7 +13,7 @@ from pathlib import Path
 st.title('Image Classification APP')
 
 st.sidebar.title('options')
-radio_button = st.sidebar.radio('select', ['Create splits', 'Train', 'Test'])
+radio_button = st.sidebar.radio('select', ['Create splits', 'Train', 'Test', 'Debug'])
 save_button = st.sidebar.button('Save Trained Model')
 
 if radio_button == 'Create splits':
@@ -119,6 +120,21 @@ elif radio_button == 'Test':
             st.write(pd.DataFrame(classification_report_dict).T)
             st.write(df_confusion_matrix)
             st.write("Finished running **test.py** ✔️")
+elif radio_button == 'Debug':
+    st.write('''
+        Use these parameters to debug your files if you faced image issues during training/testing.
+        ''')
+    debug_images = st.button("Image corruption debugging")
+    if debug_images:
+        files = image_corruption_main()
+        if len(files) != 0:
+            st.write("Problems with:")
+            for file in files:
+                st.write(str(file))  # TODO - create a button to delete corrupted images
+        else:
+            st.write("**Did not find problems**")
+
+
 
 if save_button:
     try:

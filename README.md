@@ -98,6 +98,7 @@ Follow these steps if you want to contribute:
 - [X] Added support for Streamlit web application to control the parameters
 - [X] Added support for Docker containers (python requirements and pre-trained neural net already in place)
 - [X] Added support for PDFs image extraction
+- [X] Added debug module for corrupted images
 - [ ] Create API for model serving/deploy
 - [ ] User dynaconf library to centralize application configurations
 - [ ] Save "class_names" after training as model configuration
