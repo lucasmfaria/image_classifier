@@ -20,6 +20,8 @@ group.add_argument('--oversample_ratio', type=float, help='Ratio used to over sa
                     default=None)
 group.add_argument('--undersample_ratio', type=float, help='Ratio used to under sample the majority classes',
                    default=None)
+group.add_argument('--n_pdf_pages', type=str, help='Number of pdf pages to extract and split dataset',
+                   default='all')
 parser.add_argument('--seed', type=int, help='Seed number for reproducibility', default=None)
 args = parser.parse_args()
 
@@ -44,4 +46,4 @@ def main(dataset_path=DEFAULT_DATASET_SOURCE_PATH, splits_destination_path=DEFAU
 if __name__ == '__main__':
     main(dataset_path=Path(args.dataset_path), splits_destination_path=args.splits_dest_path, test_size=args.test_size,
          valid_size=args.valid_size, undersample_ratio=args.undersample_ratio, oversample_ratio=args.oversample_ratio,
-         seed=args.seed)
+         seed=args.seed, n_pdf_pages=args.n_pdf_pages)

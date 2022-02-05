@@ -55,6 +55,10 @@ def check_pdf(dataset_path):
 def extract_images_from_pdf(dataset_path, n_pdf_pages='all'):
     output_file_extension = '.jpg'
     directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
+    try:
+        n_pdf_pages = int(n_pdf_pages)  # try to convert string to int
+    except ValueError:
+        pass  # if it is not an integer number as a string, just continue the code
     for directory in directory_list:
         pdfs_path_list = [file.resolve() for file in directory.iterdir() if file.suffix == '.pdf']
         for file in pdfs_path_list:
