@@ -4,9 +4,11 @@ notebooks/.ipynb_checkpoints
 data/*/*.jpg
 data/*/*.png
 data/*/*.csv
+data/*/*.pdf
 data/*/*/*.jpg
 data/*/*/*.png
 data/*/*/*.csv
+data/*/*/*.pdf
 models/vgg16/checkpoints/*.tf.*
 models/vgg16/checkpoints/trained_weights.*
 models/vgg16/checkpoints/trained_weights

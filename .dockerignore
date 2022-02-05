@@ -22,9 +22,11 @@ notebooks/.ipynb_checkpoints
 data/*/*.jpg
 data/*/*.png
 data/*/*.csv
+data/*/*.pdf
 data/*/*/*.jpg
 data/*/*/*.png
 data/*/*/*.csv
+data/*/*/*.pdf
 data/train
 data/test
 data/valid

@@ -8,6 +8,7 @@ import shutil
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import uuid
+from pdf2image import convert_from_path
 import argparse
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
@@ -30,7 +31,7 @@ def create_aux_dataframe(dataset_path):
     directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
     df = pd.DataFrame(columns=[directory.name for directory in directory_list])
     for directory in directory_list:
-        files_path_list = [file.resolve() for file in directory.iterdir()]
+        files_path_list = [file.resolve() for file in directory.iterdir() if file.suffix != '.pdf']
         df_ = pd.DataFrame(index=files_path_list, columns=df.columns)
         for col in df_.columns:
             if col == directory.name:
@@ -42,6 +43,27 @@ def create_aux_dataframe(dataset_path):
         df = df.append(df_)
     df = df.assign(y=np.argmax(df.values, axis=1))
     return df
+
+
+def check_pdf(dataset_path):
+    directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
+    check = np.any([True if len([file for file in directory.iterdir() if file.suffix == '.pdf']) > 0 else False
+                    for directory in directory_list])
+    return check
+
+
+def extract_images_from_pdf(dataset_path):
+    # TODO - input for how many pages to consider or all pages
+    output_file_extension = '.jpg'
+    directory_list = [directory for directory in Path(dataset_path).iterdir() if os.path.isdir(directory)]
+    for directory in directory_list:
+        pdfs_path_list = [file.resolve() for file in directory.iterdir() if file.suffix == '.pdf']
+        for file in pdfs_path_list:
+            pages = convert_from_path(file)
+            for idx, page in enumerate(pages):
+                new_file_name = file.stem + '_pagenum_' + str(idx) + output_file_extension
+                new_file_path = directory.resolve() / new_file_name
+                page.save(new_file_path)
 
 
 def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15, shuffle=True,
@@ -76,12 +98,16 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
         train pandas.DataFrame, test pandas.DataFrame and validation pandas.DataFrame
     """
 
+    if check_pdf(dataset_source_path):
+        extract_images_from_pdf(dataset_source_path)  # extracts files and save them in directory
+
     df = create_aux_dataframe(dataset_source_path)
     train, test = train_test_split(df, test_size=test_size, shuffle=shuffle, random_state=random_state,
                                    stratify=df.y)  # test split uses stratification technique and gets the
     # "real data distribution"
 
-    if (undersample_ratio is not None) and (oversample_ratio is None):  # train and valid splits distributions are controlled by the undersample_ratio parameter,
+    if (undersample_ratio is not None) and (
+            oversample_ratio is None):  # train and valid splits distributions are controlled by the undersample_ratio parameter,
         # if it is used
         train = train.assign(file=train.index).reset_index(drop=True)  # generate "file" column because the
         # RandomUnderSample resets the index
@@ -93,10 +119,11 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
             classes_examples_dict = dict(sorted(classes_examples_dict.items(), key=lambda item: item[1]))
             for idx, class_ in enumerate(classes_examples_dict.keys()):
                 if idx == 0:  # starts with the minority class
-                    n_max = int(classes_examples_dict[class_]/undersample_ratio)
+                    n_max = int(classes_examples_dict[class_] / undersample_ratio)
                     under_sample_dict[class_] = classes_examples_dict[class_]
                 else:
-                    under_sample_dict[class_] = n_max if classes_examples_dict[class_] > n_max else classes_examples_dict[class_]
+                    under_sample_dict[class_] = n_max if classes_examples_dict[class_] > n_max else \
+                    classes_examples_dict[class_]
             rus = RandomUnderSampler(sampling_strategy=under_sample_dict, replacement=False, random_state=random_state)
         train, _ = rus.fit_resample(train, train.y)
         train.index = train.file
@@ -114,7 +141,8 @@ def train_test_valid_split(dataset_source_path, test_size=0.15, valid_size=0.15,
                     n_min = int(classes_examples_dict[class_] * oversample_ratio)
                     over_sample_dict[class_] = classes_examples_dict[class_]
                 else:
-                    over_sample_dict[class_] = n_min if classes_examples_dict[class_] < n_min else classes_examples_dict[class_]
+                    over_sample_dict[class_] = n_min if classes_examples_dict[class_] < n_min else \
+                    classes_examples_dict[class_]
             ros = RandomOverSampler(sampling_strategy=over_sample_dict, shrinkage=None, random_state=random_state)
         train, _ = ros.fit_resample(train, train.y)
         train.index = train.file
@@ -159,7 +187,7 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         def preprocess(image, label):
             image = tf.cast(image, tf.float32) / 255.
             return tf.image.grayscale_to_rgb(tf.image.resize(image, size=(img_height, img_width))), \
-                                             tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
+                   tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
 
         train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
         train_ds = train_ds.batch(batch_size)
@@ -263,7 +291,7 @@ def create_split(split, destination_path, streamlit_callbacks=None):
     for int_idx, (idx, _) in tqdm(enumerate(split.iterrows()), total=split.shape[0]):
         if streamlit_callbacks is not None:  # used only with streamlit web application
             with placeholder:
-                streamlit_callbacks[1](int_idx/split.shape[0])
+                streamlit_callbacks[1](int_idx / split.shape[0])
         destination = (destination_path / idx.parent.name) / idx.name
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         if destination.exists():  # used in oversampling case
