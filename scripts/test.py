@@ -83,9 +83,23 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         df = pd.DataFrame({'recall': recall, 'precision': precision, 'class': classes, 'thresholds': thresholds})
         precision_recall = build_precision_recall(df, auc_results)
 
+        # Calculates roc metrics and auc for positive class (class_names[1])
+        auc_results = dict()
         fpr, tpr, thresholds = roc_curve(y_true, y_score)
-        auc_result = auc(fpr, tpr)
-        roc = build_roc(fpr, tpr, thresholds, auc_result)
+        auc_results[class_names[1]] = auc(fpr, tpr)
+        classes = [class_names[1]] * fpr.shape[0]
+
+        # Calculates roc metrics and auc for negative class (class_names[0])
+        fpr_, tpr_, thresholds_ = roc_curve(1 - y_true, 1 - y_score)
+        auc_results[class_names[0]] = auc(fpr_, tpr_)
+        classes = classes + [class_names[0]] * fpr_.shape[0]
+
+        # generates full dataframe with both classes
+        thresholds = np.append(thresholds, thresholds_)
+        fpr = np.append(fpr, fpr_)
+        tpr = np.append(tpr, tpr_)
+        df = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'class': classes, 'thresholds': thresholds})
+        roc = build_roc(df, auc_results)
 
     if return_results:
         classification_report_dict = classification_report(y_true, y_pred, target_names=class_names, digits=2,
