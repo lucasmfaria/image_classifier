@@ -8,6 +8,7 @@ from debug.image_corruption import main as image_corruption_main
 from tensorflow.python.framework.errors import NotFoundError
 from utils.data import check_pdf
 from pathlib import Path
+import plotly.express as px
 
 
 st.title('Image Classification APP')
@@ -114,11 +115,16 @@ elif radio_button == 'Test':
         submitted = st.form_submit_button("Test")
         if submitted:
             st.write("Running script **test.py**")
-            classification_report_dict, df_confusion_matrix = test_main(batch_size=batch_size, img_height=img_height,
-                                                                          img_width=img_width, n_hidden=n_hidden,
-                                                                          return_results=True)
+            classification_report_dict, df_confusion_matrix, precision_recall, roc = test_main(batch_size=batch_size,
+                                                                                               img_height=img_height,
+                                                                                               img_width=img_width,
+                                                                                               n_hidden=n_hidden,
+                                                                                               return_results=True)
             st.write(pd.DataFrame(classification_report_dict).T)
             st.write(df_confusion_matrix)
+            if precision_recall is not None:
+                st.plotly_chart(precision_recall)
+                st.plotly_chart(roc)
             st.write("Finished running **test.py** ✔️")
 elif radio_button == 'Debug':
     st.write('''

@@ -2,18 +2,23 @@ import tensorflow as tf
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import plotly.express as px
+from sklearn.metrics import classification_report, confusion_matrix, PrecisionRecallDisplay, average_precision_score, \
+    RocCurveDisplay, roc_curve, auc, precision_recall_curve
 import sys
 import argparse
 try:
     from utils.model import make_model, loss_definition
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
         test_dataset_definition
+    from utils.charts import build_roc, build_precision_recall
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, loss_definition
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
         test_dataset_definition
+    from utils.charts import build_roc, build_precision_recall
 
 parser = argparse.ArgumentParser()
 
@@ -39,18 +44,15 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
                                                    batch_size=batch_size, img_height=img_height, img_width=img_width,
                                                    unit_test_dataset=unit_test_dataset)
     model = tf.keras.models.load_model(Path(weights_path))
-    metrics = model.evaluate(test_ds)
-    print('Loss: {} --------- Accuracy: {}%'.format(metrics[0], np.round(metrics[1] * 100, 2)))
 
-    y_pred = model.predict(test_ds)
+    y_score = model.predict(test_ds)
     y_true = tf.concat([y for x, y in test_ds], axis=0)
+    y_true = y_true.numpy()
     if len(class_names) == 2:  # uses a threshold for the predictions if binary classification problem
-        y_pred[y_pred >= 0.5] = 1
-        y_pred[y_pred < 0.5] = 0
-        y_true = y_true.numpy()
+        y_pred = (y_score >= 0.5).astype(np.uint8)
     else:  # uses argmax if not binary classification
-        y_pred = np.argmax(y_pred, axis=1)
-        y_true = np.argmax(y_true.numpy(), axis=1)
+        y_pred = np.argmax(y_score, axis=1)
+        y_true = np.argmax(y_true, axis=1)
 
     print(classification_report(y_true, y_pred, target_names=class_names, digits=2))  # always print on console
     pred_labels = [('PRED_' + class_name) for class_name in class_names]
@@ -58,10 +60,25 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
     df_confusion_matrix = pd.DataFrame(confusion_matrix(y_true, y_pred), columns=pred_labels, index=real_labels)
     print(df_confusion_matrix)
 
+    precision_recall = None
+    roc = None
+    if len(class_names) == 2:
+        precision, recall, thresholds = precision_recall_curve(y_true, y_score)
+        thresholds = np.append(thresholds, 1)  # append the threshold "1", due to sklearn behavior
+        auc_result = average_precision_score(y_true, y_score)
+        precision_recall = build_precision_recall(precision, recall, thresholds, auc_result)
+
+        fpr, tpr, thresholds = roc_curve(y_true, y_score)
+        auc_result = auc(fpr, tpr)
+        roc = build_roc(fpr, tpr, thresholds, auc_result)
+
     if return_results:
         classification_report_dict = classification_report(y_true, y_pred, target_names=class_names, digits=2,
-                                                             output_dict=return_results)
-        return classification_report_dict, df_confusion_matrix
+                                                           output_dict=return_results)
+        return classification_report_dict, df_confusion_matrix, precision_recall, roc
+    else:
+        roc.show()
+        precision_recall.show()
 
 
 if __name__ == '__main__':
