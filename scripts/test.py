@@ -63,10 +63,25 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
     precision_recall = None
     roc = None
     if len(class_names) == 2:
+        auc_results = dict()
+        # Calculates precision, recall, thresholds and auc for positive class (class_names[1])
         precision, recall, thresholds = precision_recall_curve(y_true, y_score)
         thresholds = np.append(thresholds, 1)  # append the threshold "1", due to sklearn behavior
-        auc_result = average_precision_score(y_true, y_score)
-        precision_recall = build_precision_recall(precision, recall, thresholds, auc_result)
+        auc_results[class_names[1]] = average_precision_score(y_true, y_score)
+        classes = [class_names[1]] * recall.shape[0]
+
+        # Calculates precision, recall, thresholds and auc for negative class (class_names[0])
+        precision_, recall_, thresholds_ = precision_recall_curve(1 - y_true, 1 - y_score)
+        thresholds_ = np.append(thresholds_, 1)  # append the threshold "1", due to sklearn behavior
+        auc_results[class_names[0]] = average_precision_score(1 - y_true, 1 - y_score)
+        classes = classes + [class_names[0]] * recall_.shape[0]
+
+        # generates full dataframe with both classes
+        thresholds = np.append(thresholds, thresholds_)
+        precision = np.append(precision, precision_)
+        recall = np.append(recall, recall_)
+        df = pd.DataFrame({'recall': recall, 'precision': precision, 'class': classes, 'thresholds': thresholds})
+        precision_recall = build_precision_recall(df, auc_results)
 
         fpr, tpr, thresholds = roc_curve(y_true, y_score)
         auc_result = auc(fpr, tpr)
