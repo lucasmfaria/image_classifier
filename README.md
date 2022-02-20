@@ -65,7 +65,7 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 ```
 
 ## 🐳 Docker users
-You can use the images based on "https://hub.docker.com/r/lucasmfaria/image_classifier" repository, with the python requirements and pre-trained weights already in place. If you want to build your own image, you can use the Dockerfile on this project.
+You can use the images based on "https://hub.docker.com/r/lucasmfaria/image_classifier" repository (for CPU and GPU support), with the python requirements and pre-trained weights already in place. If you want to build your own image, you can use the Dockerfile on this project.
 
 ```
 - Move your image dataset into the folder 'data', with the classes separation. Final directory 
@@ -76,7 +76,7 @@ example for a multiclass classification: 'data/dataset/class1', 'data/dataset/cl
 - For test.py -> run "docker run -it --rm -v [YOUR_DATA_PATH]:/opt/data -v [YOUR_MODELS_PATH]:/opt/models --name test lucasmfaria/image_classifier:latest python ./scripts/test.py"
 ```
 
-If you are on Windows platform, you can use the PowerShell scripts inside the "docker" directory that automate the code above.
+You can use the PowerShell scripts (for Windows) and the shell scripts (for Linux) inside the "docker" directory. They can automate the code above.
 
 ## 📫 Contribute to the project
 Follow these steps if you want to contribute:
