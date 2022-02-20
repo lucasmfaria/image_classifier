@@ -96,7 +96,7 @@ Follow these steps if you want to contribute:
 - [X] Create user interface to train, test, predict and serve model (need to improve)
 - [X] Create unit tests (need to improve)
 - [X] Added support for Streamlit web application to control the parameters
-- [X] Added support for Docker containers (python requirements and pre-trained neural net already in place)
+- [X] Added support for Docker containers (CPU and GPU), with python requirements and pre-trained neural net already in place
 - [X] Added support for PDFs image extraction
 - [X] Added debug module for corrupted images
 - [X] Added precision-recall and roc curves for model evaluation (binary case)
