@@ -105,7 +105,7 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         classification_report_dict = classification_report(y_true, y_pred, target_names=class_names, digits=2,
                                                            output_dict=return_results)
         return classification_report_dict, df_confusion_matrix, precision_recall, roc
-    else:
+    elif (roc is not None) and (precision_recall is not None):
         roc.show()
         precision_recall.show()
 
