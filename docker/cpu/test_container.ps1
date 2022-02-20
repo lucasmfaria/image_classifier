@@ -1,5 +1,5 @@
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-$projectPath = (get-item $scriptPath ).parent.Fullname
+$projectPath = (get-item $scriptPath ).parent.parent.Fullname
 $dataPath = Join-Path $projectPath "data"
 $modelsPath = Join-Path $projectPath "models"
 
