@@ -8,7 +8,8 @@ import streamlit as st
 DEFAULT_CHECKPOINTS_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'checkpoints'
 DEFAULT_LOG_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'logs'
 
-def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224):
+
+def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
     """
     Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
     :param n_classes: int - number of classes required for the classification problem
@@ -18,7 +19,11 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     :param img_width: int - image width
     :return: tf.keras.Model - final model
     """
-    vgg_model = vgg16.VGG16(include_top=False, pooling='max')
+    if transfer_learning:
+        weights = 'imagenet'
+    else:
+        weights = None
+    vgg_model = vgg16.VGG16(include_top=False, pooling='max', weights=weights)
 
     data_augmentation = tf.keras.Sequential([
         layers.experimental.preprocessing.RandomFlip('horizontal'),
@@ -78,12 +83,17 @@ def loss_definition(n_classes):
     return tf.keras.losses.CategoricalCrossentropy() if n_classes > 2 else tf.keras.losses.BinaryCrossentropy()
 
 
-def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, base_lr=0.001):
+def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, base_lr=0.001,
+                  transfer_learning=True):
     if seed is not None:
         tf.random.set_seed(seed)
 
-    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width)
-    freeze_all_vgg(model)
+    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
+                       transfer_learning=transfer_learning)
+    if transfer_learning:
+        freeze_all_vgg(model)
+    else:
+        unfreeze_all_vgg(model)
 
     loss = loss_definition(n_classes=n_classes)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr), loss=loss, metrics=['accuracy'])
@@ -137,20 +147,22 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
 
 
 def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epochs=30, fine_tune_at_layer=15,
-          fine_tuning_lr=0.001, callbacks=None, seed=None):
+          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True):
     if seed is not None:
         tf.random.set_seed(seed)
 
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
-    unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
 
-    total_epochs = base_epochs + fine_tuning_epochs
-    loss = loss_definition(n_classes=n_classes)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=fine_tuning_lr), loss=loss, metrics=['accuracy'])
+    if transfer_learning:
+        unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
 
-    if seed is not None:
-        tf.random.set_seed(seed)
+        total_epochs = base_epochs + fine_tuning_epochs
+        loss = loss_definition(n_classes=n_classes)
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=fine_tuning_lr), loss=loss, metrics=['accuracy'])
 
-    history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=callbacks,
-                        initial_epoch=history.epoch[-1] + 1)
+        if seed is not None:
+            tf.random.set_seed(seed)
+
+        history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=callbacks,
+                            initial_epoch=history.epoch[-1] + 1)
     return model, history

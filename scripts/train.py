@@ -40,10 +40,12 @@ DEFAULT_TRAIN_PATH = Path(__file__).resolve().parent.parent / 'data' / 'train'
 parser.add_argument('--train_path', type=str, help='Path of the train dataset', default=DEFAULT_TRAIN_PATH)
 DEFAULT_VALID_PATH = Path(__file__).resolve().parent.parent / 'data' / 'valid'
 parser.add_argument('--valid_path', type=str, help='Path of the validation dataset', default=DEFAULT_VALID_PATH)
-parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist]',
+parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist, patch_camelyon]',
                     default=None)
 parser.add_argument('--unit_test_dataset', type=true_or_false, help='Whether or not to load only a few images, only for unit testing',
                     default=False)
+parser.add_argument('--transfer_learning', type=true_or_false, help='Whether or not to use a pre-trained model',
+                    default=True)
 args = parser.parse_args()
 
 # TODO - use flake8 for python style test
@@ -61,7 +63,8 @@ args = parser.parse_args()
 def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_dataset=None, batch_size=64,
          img_height=224, img_width=224, seed=None, unit_test_dataset=False, n_hidden=512, base_lr=0.001,
          log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_epochs=30, fine_tuning_epochs=30,
-         fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights', streamlit_callbacks=None):
+         fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights', streamlit_callbacks=None,
+         transfer_learning=True):
 
     # load the dataset:
     train_ds, valid_ds, class_names = train_valid_dataset_definition(train_path=Path(train_path),
@@ -71,7 +74,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
                                                                      seed=seed, unit_test_dataset=unit_test_dataset)
     # build the initial model with frozen VGG16 layers:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
-                          seed=seed, base_lr=base_lr)
+                          seed=seed, base_lr=base_lr, transfer_learning=transfer_learning)
     # create the callback functions:
     callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path),
                                      streamlit_callbacks=streamlit_callbacks, base_epochs=base_epochs,
@@ -80,7 +83,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
     model, history = train(model=model, train_ds=train_ds, valid_ds=valid_ds, n_classes=len(class_names),
                            base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs,
                            fine_tune_at_layer=fine_tune_at_layer, fine_tuning_lr=fine_tuning_lr,
-                           callbacks=callbacks, seed=seed)
+                           callbacks=callbacks, seed=seed, transfer_learning=transfer_learning)
     # save the model
     model.save(Path(checkpoints_path) / final_model_name, save_format='h5')
 
@@ -91,4 +94,5 @@ if __name__ == '__main__':
          unit_test_dataset=args.unit_test_dataset, n_hidden=args.n_hidden, base_lr=args.base_lr,
          log_path=Path(args.log_path), checkpoints_path=Path(args.checkpoints_path), base_epochs=args.base_epochs,
          fine_tuning_epochs=args.fine_tuning_epochs, fine_tune_at_layer=args.fine_tune_at_layer,
-         fine_tuning_lr=args.fine_tuning_lr, final_model_name=args.final_model_name)
+         fine_tuning_lr=args.fine_tuning_lr, final_model_name=args.final_model_name,
+         transfer_learning=args.transfer_learning)

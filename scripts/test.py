@@ -31,7 +31,7 @@ parser.add_argument('--test_path', type=str, help='Path of the test dataset', de
 DEFAULT_WEIGHTS_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'checkpoints' / 'trained_weights'
 parser.add_argument('--weights_path', type=str, help='Path of the final model weights file',
                     default=DEFAULT_WEIGHTS_PATH)
-parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist, cats_vs_dogs]',
+parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist, patch_camelyon]',
                     default=None)
 parser.add_argument('--unit_test_dataset', type=true_or_false, help='Whether or not to load only a few images, only for unit testing',
                     default=False)
