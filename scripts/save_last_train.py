@@ -21,7 +21,7 @@ parser.add_argument('--saved_models_path', type=str, help='Path of the saved mod
                     default=DEFAULT_SAVED_MODELS_PATH)
 parser.add_argument('--img_height', type=int, help='Image height after resize', default=224)
 parser.add_argument('--img_width', type=int, help='Image width after resize', default=224)
-parser.add_argument('--batch_size', type=int, help='Batch size for training', default=64)
+parser.add_argument('--batch_size', type=int, help='Batch size for testing', default=64)
 parser.add_argument('--sample_dataset', type=str, help='Name of sample dataset in [mnist, patch_camelyon]',
                     default=None)
 

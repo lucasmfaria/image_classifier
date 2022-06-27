@@ -259,18 +259,19 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         return train_ds, test_ds, valid_ds, class_names
 
 
-def train_valid_dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_dataset=None,
+def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, test_path=DEFAULT_TEST_PATH, sample_dataset=None,
                                    batch_size=64, img_height=224, img_width=224, seed=None, unit_test_dataset=False):
     if sample_dataset in ['mnist']:  # loads a sample dataset for user/unit testing
         train_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
                                                                  img_height=img_height, img_width=img_width)
+        test_ds = valid_ds
 
     elif sample_dataset in ['patch_camelyon']:  # loads a sample dataset for user/unit testing
-        train_ds, _, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
+        train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)
     elif sample_dataset in ['oxford_flowers102']:  # loads a sample dataset for user/unit testing
-        train_ds, _, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
+        train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)
     else:  # loads a user defined dataset in path
@@ -283,23 +284,32 @@ def train_valid_dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEF
                                                                        image_size=(img_height, img_width),
                                                                        batch_size=batch_size, shuffle=True,
                                                                        label_mode='categorical', seed=seed)
+                                                                       
+        test_ds = tf.keras.preprocessing.image_dataset_from_directory(test_path, image_size=(img_height, img_width),
+                                                                      batch_size=batch_size, shuffle=False,
+                                                                      label_mode='categorical')
 
         class_names = train_ds.class_names
         assert class_names == valid_ds.class_names
+        assert class_names == test_ds.class_names
 
         AUTOTUNE = tf.data.AUTOTUNE
 
         if len(class_names) == 2:  # take the one-hot-encoded matrix of labels and convert to a vector if binary classification
             train_ds = train_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
             valid_ds = valid_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+            test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
         train_ds = optimize_dataset(train_ds)
         valid_ds = optimize_dataset(valid_ds)
+        test_ds = optimize_dataset(test_ds)
 
     if unit_test_dataset:  # take only some elements of dataset, only used for unit testing
         train_ds = train_ds.take(5)
         valid_ds = valid_ds.take(5)
+        test_ds = test_ds.take(5)
+        
 
-    return train_ds, valid_ds, class_names
+    return train_ds, test_ds, valid_ds, class_names
 
 
 def test_dataset_definition(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_height=224,

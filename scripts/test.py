@@ -11,20 +11,20 @@ import argparse
 try:
     from utils.model import make_model, loss_definition
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
-        test_dataset_definition
+        dataset_definition
     from utils.charts import build_roc, build_precision_recall
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from utils.model import make_model, loss_definition
     from utils.data import filter_binary_labels, optimize_dataset, prepare_sample_dataset, true_or_false, \
-        test_dataset_definition
+        dataset_definition
     from utils.charts import build_roc, build_precision_recall
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--img_height', type=int, help='Image height after resize', default=224)
 parser.add_argument('--img_width', type=int, help='Image width after resize', default=224)
-parser.add_argument('--batch_size', type=int, help='Batch size for training', default=64)
+parser.add_argument('--batch_size', type=int, help='Batch size for testing', default=64)
 parser.add_argument('--n_hidden', type=int, help='Number of neurons in hidden dense layers', default=512)
 DEFAULT_TEST_PATH = Path(__file__).resolve().parent.parent / 'data' / 'test'
 parser.add_argument('--test_path', type=str, help='Path of the test dataset', default=DEFAULT_TEST_PATH)
@@ -40,7 +40,7 @@ args = parser.parse_args()
 
 def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_height=224, img_width=224,
          unit_test_dataset=False, n_hidden=512, weights_path=DEFAULT_WEIGHTS_PATH, return_results=False):
-    test_ds, class_names = test_dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
+    _, _, test_ds, class_names = dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
                                                    batch_size=batch_size, img_height=img_height, img_width=img_width,
                                                    unit_test_dataset=unit_test_dataset)
     model = tf.keras.models.load_model(Path(weights_path))
