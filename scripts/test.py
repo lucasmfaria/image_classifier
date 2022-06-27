@@ -40,7 +40,7 @@ args = parser.parse_args()
 
 def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_height=224, img_width=224,
          unit_test_dataset=False, n_hidden=512, weights_path=DEFAULT_WEIGHTS_PATH, return_results=False):
-    _, _, test_ds, class_names = dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
+    _, test_ds, _, class_names = dataset_definition(test_path=Path(test_path), sample_dataset=sample_dataset,
                                                    batch_size=batch_size, img_height=img_height, img_width=img_width,
                                                    unit_test_dataset=unit_test_dataset)
     model = tf.keras.models.load_model(Path(weights_path))
