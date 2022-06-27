@@ -214,11 +214,35 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         (train_ds, test_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'test', 'validation'],
                                                            shuffle_files=True, as_supervised=True, with_info=True)
         # TODO - fix this class names - get from dataset
-        class_names = ['0', '1']
+        class_names = ['normal_tissue', 'metastatic_tissue']
 
         def preprocess(image, label):
             image = tf.cast(image, tf.float32) / 255.
             return tf.image.resize(image, size=(img_height, img_width)), label
+
+        train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+
+        test_ds = test_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+        test_ds = test_ds.batch(batch_size)
+        test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
+
+        valid_ds = valid_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
+        valid_ds = valid_ds.batch(batch_size)
+        valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
+
+        return train_ds, test_ds, valid_ds, class_names
+    elif sample_dataset == 'oxford_flowers102':
+        (train_ds, test_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'test', 'validation'],
+                                                           shuffle_files=True, as_supervised=True, with_info=True)
+        # TODO - fix this class names - get from dataset
+        class_names = ds_info.features['label'].names
+
+        def preprocess(image, label):
+            image = tf.cast(image, tf.float32) / 255.
+            return tf.image.resize(image, size=(img_height, img_width)), \
+                   tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
 
         train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
         train_ds = train_ds.batch(batch_size)
@@ -242,6 +266,10 @@ def train_valid_dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEF
                                                                  img_height=img_height, img_width=img_width)
 
     elif sample_dataset in ['patch_camelyon']:  # loads a sample dataset for user/unit testing
+        train_ds, _, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
+                                                                          batch_size=batch_size, img_height=img_height,
+                                                                          img_width=img_width)
+    elif sample_dataset in ['oxford_flowers102']:  # loads a sample dataset for user/unit testing
         train_ds, _, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)
@@ -279,7 +307,10 @@ def test_dataset_definition(test_path=DEFAULT_TEST_PATH, sample_dataset=None, ba
     if sample_dataset in ['mnist']:  # loads a sample dataset for user testing
         _, test_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
                                                          img_height=img_height, img_width=img_width)
-    if sample_dataset in ['patch_camelyon']:  # loads a sample dataset for user testing
+    elif sample_dataset in ['patch_camelyon']:  # loads a sample dataset for user testing
+        _, test_ds, _, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
+                                                         img_height=img_height, img_width=img_width)
+    elif sample_dataset in ['oxford_flowers102']:  # loads a sample dataset for user testing
         _, test_ds, _, class_names = prepare_sample_dataset(sample_dataset=sample_dataset, batch_size=batch_size,
                                                          img_height=img_height, img_width=img_width)
     else:

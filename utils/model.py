@@ -1,6 +1,6 @@
 from pathlib import Path
 import tensorflow as tf
-from tensorflow.keras.applications import vgg16
+from tensorflow.keras.applications import vgg16, vgg19, densenet, resnet_v2, inception_v3
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 import streamlit as st
@@ -9,7 +9,7 @@ DEFAULT_CHECKPOINTS_PATH = Path(__file__).resolve().parent.parent / 'models' / '
 DEFAULT_LOG_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'logs'
 
 
-def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
+def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True, base_model='vgg16'):
     """
     Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
     :param n_classes: int - number of classes required for the classification problem
@@ -23,7 +23,29 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
         weights = 'imagenet'
     else:
         weights = None
-    vgg_model = vgg16.VGG16(include_top=False, pooling='max', weights=weights)
+    
+    if base_model == 'vgg16':
+        base_model_net = vgg16.VGG16(include_top=False, weights=weights)
+        preprocess_layer = vgg16.preprocess_input
+        #base_model = vgg16.VGG16(include_top=False, pooling='max', weights=weights)
+    if base_model == 'vgg19':
+        base_model_net = vgg19.VGG19(include_top=False, weights=weights)
+        preprocess_layer = vgg19.preprocess_input
+    elif base_model == 'densenet201':
+        base_model_net = densenet.DenseNet201(include_top=False, weights=weights)
+        preprocess_layer = densenet.preprocess_input
+    elif base_model == 'densenet169':
+        base_model_net = densenet.DenseNet169(include_top=False, weights=weights)
+        preprocess_layer = densenet.preprocess_input
+    elif base_model == 'densenet121':
+        base_model_net = densenet.DenseNet121(include_top=False, weights=weights)
+        preprocess_layer = densenet.preprocess_input
+    elif base_model == 'resnet152v2':
+        base_model_net = resnet_v2.ResNet152V2(include_top=False, weights=weights)
+        preprocess_layer = resnet_v2.preprocess_input
+    elif base_model == 'inception_v3':
+        base_model_net = inception_v3.InceptionV3(include_top=False, weights=weights)
+        preprocess_layer = inception_v3.preprocess_input
 
     data_augmentation = tf.keras.Sequential([
         layers.experimental.preprocessing.RandomFlip('horizontal'),
@@ -32,13 +54,104 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
 
     inputs = layers.Input(shape=(img_height, img_width, 3))
     x = data_augmentation(inputs)
-    x = vgg16.preprocess_input(x)
-    x = vgg_model(x)
+    x = preprocess_layer(x)
+    x = base_model_net(x, training=False)
+    #x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    #x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    #x = layers.MaxPooling2D((2, 2))(x)
     x = layers.Flatten(name='flatten')(x)
     x = layers.Dense(n_hidden, activation='relu', name='dense_1')(x)
     x = layers.Dropout(0.2)(x)
     x = layers.BatchNormalization()(x)
     x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_3')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
+    activation = 'softmax' if n_classes != 2 else 'sigmoid'  # sigmoid if it's a binary classification problem
+    outputs = layers.Dense(n_outputs, activation=activation, name='output')(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model
+
+'''
+def make_simple_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
+    """
+    Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
+    :param n_classes: int - number of classes required for the classification problem
+    :param include_top_vgg: bool - whether or not to include the top of the pre-trained model
+    :param n_hidden: int - number of hidden layers to add to the pre-trained model
+    :param img_height: int - image height
+    :param img_width: int - image width
+    :return: tf.keras.Model - final model
+    """
+
+    inputs = layers.Input(shape=(img_height, img_width, 3))
+    x = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Flatten(name='flatten')(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_1')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_3')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
+    activation = 'softmax' if n_classes != 2 else 'sigmoid'  # sigmoid if it's a binary classification problem
+    outputs = layers.Dense(n_outputs, activation=activation, name='output')(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model
+'''
+
+def make_simple_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
+    
+    data_augmentation = tf.keras.Sequential([
+            layers.experimental.preprocessing.RandomFlip('horizontal'),
+            layers.experimental.preprocessing.RandomRotation(0.2),
+        ])
+    inputs = layers.Input(shape=(img_height, img_width, 3))
+    x = data_augmentation(inputs)
+    x = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Flatten(name='flatten')(x)
+    x = layers.Dense(512, activation='relu', name='dense_1')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(512, activation='relu', name='dense_2')(x)
     x = layers.Dropout(0.2)(x)
     x = layers.BatchNormalization()(x)
     n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
@@ -49,27 +162,27 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     return model
 
 
-def freeze_all_vgg(model):
+def freeze_all_base_model(model, base_model='vgg16'):
     for layer in model.layers:
-        if 'vgg' in layer.name:
-            for vgg_layer in layer.layers:
-                vgg_layer.trainable = False
+        if base_model in layer.name:
+            for base_model_layer in layer.layers:
+                base_model_layer.trainable = False
 
 
-def unfreeze_last_vgg(model, which_freeze=15):
+def unfreeze_last_base_model(model, which_freeze=15, base_model='vgg16'):
     for layer in model.layers:
-        if 'vgg' in layer.name:
-            for vgg_layer in layer.layers[:which_freeze]:
-                vgg_layer.trainable = False
-            for vgg_layer in layer.layers[which_freeze:]:
-                vgg_layer.trainable = True
+        if base_model in layer.name:
+            for base_model_layer in layer.layers[:which_freeze]:
+                base_model_layer.trainable = False
+            for base_model_layer in layer.layers[which_freeze:]:
+                base_model_layer.trainable = True
 
 
-def unfreeze_all_vgg(model):
+def unfreeze_all_base_model(model, base_model='vgg16'):
     for layer in model.layers:
-        if 'vgg' in layer.name:
-            for vgg_layer in layer.layers:
-                vgg_layer.trainable = True
+        if base_model in layer.name:
+            for base_model_layer in layer.layers:
+                base_model_layer.trainable = True
 
 
 def print_vgg_trainable(model):
@@ -84,16 +197,18 @@ def loss_definition(n_classes):
 
 
 def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, base_lr=0.001,
-                  transfer_learning=True):
+                  transfer_learning=True, base_model='vgg16'):
     if seed is not None:
         tf.random.set_seed(seed)
 
     model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
-                       transfer_learning=transfer_learning)
+                       transfer_learning=transfer_learning, base_model=base_model)
+    #model = make_simple_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
+    #                   transfer_learning=transfer_learning)
     if transfer_learning:
-        freeze_all_vgg(model)
+        freeze_all_base_model(model, base_model=base_model)
     else:
-        unfreeze_all_vgg(model)
+        unfreeze_all_base_model(model, base_model=base_model)
 
     loss = loss_definition(n_classes=n_classes)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr), loss=loss, metrics=['accuracy'])
@@ -147,14 +262,14 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
 
 
 def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epochs=30, fine_tune_at_layer=15,
-          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True):
+          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True, base_model='vgg16'):
     if seed is not None:
         tf.random.set_seed(seed)
 
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
 
     if transfer_learning:
-        unfreeze_last_vgg(model, which_freeze=fine_tune_at_layer)
+        unfreeze_last_base_model(model, which_freeze=fine_tune_at_layer, base_model=base_model)
 
         total_epochs = base_epochs + fine_tuning_epochs
         loss = loss_definition(n_classes=n_classes)
