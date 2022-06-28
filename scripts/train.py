@@ -83,7 +83,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
     model, history = train(model=model, train_ds=train_ds, valid_ds=valid_ds, n_classes=len(class_names),
                            base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs,
                            fine_tune_at_layer=fine_tune_at_layer, fine_tuning_lr=fine_tuning_lr,
-                           callbacks=callbacks, seed=seed, transfer_learning=transfer_learning, base_model=base_model)
+                           callbacks=callbacks, seed=seed, transfer_learning=transfer_learning, base_model=base_model, checkpoints_path=Path(checkpoints_path))
     # save the model
     model.save(Path(checkpoints_path) / final_model_name, save_format='h5')
 

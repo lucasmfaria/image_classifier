@@ -261,12 +261,27 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
     return callbacks
 
 
+def get_best_model_name(checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
+    # returns the last integer number inside the name of the best model file
+    return sorted([(int(x.name.split('_')[1].split('.')[0]), x.name) for x in list(Path(checkpoints_path).iterdir()) if len(x.name.split('_')) > 1])[-1][1]
+
+
+def load_best_model(checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
+    # loads the best model from checkpoints folder
+    best_model_name = get_best_model_name(checkpoints_path=checkpoints_path)
+    print('USER - Restoring model weights from the end of the best epoch:', best_model_name.split('_')[-1].split('.')[0])
+    model = tf.keras.models.load_model(Path(checkpoints_path) / best_model_name)  # loads the best model even if early_stopping does not triggers
+    return model
+
+
 def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epochs=30, fine_tune_at_layer=15,
-          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True, base_model='vgg16'):
+          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True, base_model='vgg16', checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
     if seed is not None:
         tf.random.set_seed(seed)
 
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
+    
+    model = load_best_model(checkpoints_path=checkpoints_path)
 
     if transfer_learning and (fine_tuning_epochs > 0):
         unfreeze_last_base_model(model, which_freeze=fine_tune_at_layer, base_model=base_model)
@@ -280,4 +295,6 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
 
         history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=callbacks,
                             initial_epoch=history.epoch[-1] + 1)
+        
+        model = load_best_model(checkpoints_path=checkpoints_path)
     return model, history
