@@ -211,8 +211,12 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         return train_ds, valid_ds, class_names
     # TODO - include other sample datasets
     elif sample_dataset == 'patch_camelyon':
-        (train_ds, test_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'test', 'validation'],
+        (train_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'validation'],
                                                            shuffle_files=True, as_supervised=True, with_info=True)
+        test_ds, ds_info = tfds.load(sample_dataset, split=['test'],
+                                                           shuffle_files=False, as_supervised=True, with_info=True)
+        test_ds = test_ds[0]
+        
         # TODO - fix this class names - get from dataset
         class_names = ['normal_tissue', 'metastatic_tissue']
 
@@ -234,8 +238,12 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
 
         return train_ds, test_ds, valid_ds, class_names
     elif sample_dataset == 'oxford_flowers102':
-        (train_ds, test_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'test', 'validation'],
+        (train_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'validation'],
                                                            shuffle_files=True, as_supervised=True, with_info=True)
+        test_ds, ds_info = tfds.load(sample_dataset, split=['test'],
+                                                           shuffle_files=False, as_supervised=True, with_info=True)
+        test_ds = test_ds[0]
+        
         # TODO - fix this class names - get from dataset
         class_names = ds_info.features['label'].names
 
@@ -266,14 +274,11 @@ def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_P
                                                                  img_height=img_height, img_width=img_width)
         test_ds = valid_ds
 
-    elif sample_dataset in ['patch_camelyon']:  # loads a sample dataset for user/unit testing
+    elif sample_dataset in ['patch_camelyon', 'oxford_flowers102']:  # loads a sample dataset for user/unit testing
         train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)
-    elif sample_dataset in ['oxford_flowers102']:  # loads a sample dataset for user/unit testing
-        train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
-                                                                          batch_size=batch_size, img_height=img_height,
-                                                                          img_width=img_width)
+    
     else:  # loads a user defined dataset in path
         train_ds = tf.keras.preprocessing.image_dataset_from_directory(train_path,
                                                                        image_size=(img_height, img_width),

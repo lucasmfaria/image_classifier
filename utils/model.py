@@ -218,10 +218,10 @@ def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=N
 def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH,
                          streamlit_callbacks=None, base_epochs=30, fine_tuning_epochs=30):
     tb = TensorBoard(log_dir=log_path)
-    checkpoint = ModelCheckpoint(checkpoints_path / 'train_{epoch}.tf', verbose=1, save_weights_only=True,
+    checkpoint = ModelCheckpoint(checkpoints_path / 'train_{epoch}.tf', verbose=1, save_weights_only=False,
                                  save_best_only=True, monitor='val_loss')
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1)
-    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1)
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, restore_best_weights=True)
 
     callbacks = [tb, checkpoint, reduce_lr, early_stopping]
     if streamlit_callbacks is not None:  # used only with streamlit web application
@@ -268,7 +268,7 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
 
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
 
-    if transfer_learning:
+    if transfer_learning and (fine_tuning_epochs > 0):
         unfreeze_last_base_model(model, which_freeze=fine_tune_at_layer, base_model=base_model)
 
         total_epochs = base_epochs + fine_tuning_epochs
