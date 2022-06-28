@@ -1,6 +1,6 @@
 from pathlib import Path
 import tensorflow as tf
-from tensorflow.keras.applications import vgg16, vgg19, densenet, resnet_v2, inception_v3
+from tensorflow.keras.applications import vgg16, vgg19, densenet, resnet_v2, inception_v3, resnet50, resnet
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 import streamlit as st
@@ -43,6 +43,15 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     elif base_model == 'resnet152v2':
         base_model_net = resnet_v2.ResNet152V2(include_top=False, weights=weights)
         preprocess_layer = resnet_v2.preprocess_input
+    elif base_model == 'resnet50':
+        base_model_net = resnet50.ResNet50(include_top=False, weights=weights)
+        preprocess_layer = resnet50.preprocess_input
+    elif base_model == 'resnet152':
+        base_model_net = resnet.ResNet152(include_top=False, weights=weights)
+        preprocess_layer = resnet.preprocess_input 
+    elif base_model == 'resnet101':
+        base_model_net = resnet.ResNet101(include_top=False, weights=weights)
+        preprocess_layer = resnet.preprocess_input
     elif base_model == 'inception_v3':
         base_model_net = inception_v3.InceptionV3(include_top=False, weights=weights)
         preprocess_layer = inception_v3.preprocess_input
