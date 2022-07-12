@@ -1,3 +1,5 @@
+from tensorflow.keras.backend import clear_session
+from tensorflow.python.framework.ops import disable_eager_execution
 from pathlib import Path
 import sys
 import argparse
@@ -72,6 +74,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
                                                                      sample_dataset=sample_dataset, batch_size=batch_size,
                                                                      img_height=img_height, img_width=img_width,
                                                                      seed=seed, unit_test_dataset=unit_test_dataset)
+    
     # build the initial model with frozen base_model layers:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
                           seed=seed, base_lr=base_lr, transfer_learning=transfer_learning, base_model=base_model)

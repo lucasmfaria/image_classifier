@@ -237,6 +237,59 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
 
         return train_ds, test_ds, valid_ds, class_names
+    elif sample_dataset == 'patch_camelyon_resnet152v2':
+        def parse_tfr_element(element):
+            data = {
+              'height': tf.io.FixedLenFeature([], tf.int64),
+              'width':tf.io.FixedLenFeature([], tf.int64),
+              'label':tf.io.FixedLenFeature([], tf.int64),
+              'raw_image' : tf.io.FixedLenFeature([], tf.string),
+              'depth':tf.io.FixedLenFeature([], tf.int64),
+            }
+            
+            content = tf.io.parse_single_example(element, data)
+            
+            height = content['height']
+            width = content['width']
+            depth = content['depth']
+            label = content['label']
+            raw_image = content['raw_image']
+            
+            feature = tf.io.parse_tensor(raw_image, out_type=tf.float32)
+            feature = tf.reshape(feature, shape=[height,width,depth])
+            return (feature, label)
+        
+        class_names = ['normal_tissue', 'metastatic_tissue']
+        train_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / 'patch_camelyon' / 'resnet152v2' / 'train' / 'dataset*'
+        test_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / 'patch_camelyon' / 'resnet152v2' / 'test' / 'dataset*'
+        valid_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / 'patch_camelyon' / 'resnet152v2' / 'validation' / 'dataset*'
+        
+        train_ds = tf.data.TFRecordDataset.list_files(str(train_pattern))
+        #train_ds = train_ds.shuffle(buffer_size=len(train_ds))
+        train_ds = train_ds.shuffle(buffer_size=train_ds.cardinality())
+        train_ds = train_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        train_ds = train_ds.map(parse_tfr_element)
+        train_ds = train_ds.shuffle(10000)
+        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+        
+        valid_ds = tf.data.TFRecordDataset.list_files(str(valid_pattern))
+        valid_ds = valid_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        valid_ds = valid_ds.map(parse_tfr_element)
+        valid_ds = valid_ds.batch(batch_size)
+        valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
+        
+        #test_ds = tf.data.TFRecordDataset.list_files(str(test_pattern))
+        #test_ds = test_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        import glob
+        test_files = glob.glob(str(Path(test_pattern)), recursive=False)
+        test_ds = tf.data.TFRecordDataset(test_files)
+        test_ds = test_ds.map(parse_tfr_element)
+        test_ds = test_ds.batch(batch_size)
+        test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
+        
+        return train_ds, test_ds, valid_ds, class_names
+        
     elif sample_dataset == 'oxford_flowers102':
         (train_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'validation'],
                                                            shuffle_files=True, as_supervised=True, with_info=True)
@@ -274,7 +327,7 @@ def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_P
                                                                  img_height=img_height, img_width=img_width)
         test_ds = valid_ds
 
-    elif sample_dataset in ['patch_camelyon', 'oxford_flowers102']:  # loads a sample dataset for user/unit testing
+    elif sample_dataset in ['patch_camelyon', 'oxford_flowers102', 'patch_camelyon_resnet152v2']:  # loads a sample dataset for user/unit testing
         train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)

@@ -9,6 +9,10 @@ data/*/*/*.jpg
 data/*/*/*.png
 data/*/*/*.csv
 data/*/*/*.pdf
+data/experiments/*.json
+data/tfrecords/patch_camelyon/resnet152v2/train/*
+data/tfrecords/patch_camelyon/resnet152v2/validation/*
+data/tfrecords/patch_camelyon/resnet152v2/test/*
 models/vgg16/checkpoints/*.tf.*
 models/vgg16/checkpoints/*.tf
 models/vgg16/checkpoints/trained_weights.*

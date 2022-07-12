@@ -1,12 +1,36 @@
 from pathlib import Path
+import gc
 import tensorflow as tf
 from tensorflow.keras.applications import vgg16, vgg19, densenet, resnet_v2, inception_v3, resnet50, resnet
 from tensorflow.keras import layers
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from tensorflow.keras.backend import clear_session
+from tensorflow.python.framework.ops import disable_eager_execution
 import streamlit as st
 
 DEFAULT_CHECKPOINTS_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'checkpoints'
 DEFAULT_LOG_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'logs'
+
+
+def make_classifier(n_classes, n_hidden=512, img_height=7, img_width=7, img_depth=2048):
+    
+    inputs = layers.Input(shape=(img_height, img_width, img_depth))
+    x = layers.Flatten(name='flatten')(inputs)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_1')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(n_hidden, activation='relu', name='dense_3')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.BatchNormalization()(x)
+    n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
+    activation = 'softmax' if n_classes != 2 else 'sigmoid'  # sigmoid if it's a binary classification problem
+    outputs = layers.Dense(n_outputs, activation=activation, name='output')(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    return model
 
 
 def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True, base_model='vgg16'):
@@ -55,7 +79,9 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
     elif base_model == 'inception_v3':
         base_model_net = inception_v3.InceptionV3(include_top=False, weights=weights)
         preprocess_layer = inception_v3.preprocess_input
-
+    elif base_model == 'classifier':
+        return make_classifier(n_classes, n_hidden, img_height, img_width)
+    
     data_augmentation = tf.keras.Sequential([
         layers.experimental.preprocessing.RandomFlip('horizontal'),
         layers.experimental.preprocessing.RandomRotation(0.2),
@@ -85,52 +111,6 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
 
     return model
 
-'''
-def make_simple_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
-    """
-    Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
-    :param n_classes: int - number of classes required for the classification problem
-    :param include_top_vgg: bool - whether or not to include the top of the pre-trained model
-    :param n_hidden: int - number of hidden layers to add to the pre-trained model
-    :param img_height: int - image height
-    :param img_width: int - image width
-    :return: tf.keras.Model - final model
-    """
-
-    inputs = layers.Input(shape=(img_height, img_width, 3))
-    x = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
-    x = layers.MaxPooling2D((2, 2))(x)
-    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2))(x)
-    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2))(x)
-    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2))(x)
-    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = layers.Conv2D(512, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((2, 2))(x)
-    x = layers.Flatten(name='flatten')(x)
-    x = layers.Dense(n_hidden, activation='relu', name='dense_1')(x)
-    x = layers.Dropout(0.2)(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dense(n_hidden, activation='relu', name='dense_2')(x)
-    x = layers.Dropout(0.2)(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Dense(n_hidden, activation='relu', name='dense_3')(x)
-    x = layers.Dropout(0.2)(x)
-    x = layers.BatchNormalization()(x)
-    n_outputs = n_classes if n_classes != 2 else 1  # only one output neuron if it's a binary classification problem
-    activation = 'softmax' if n_classes != 2 else 'sigmoid'  # sigmoid if it's a binary classification problem
-    outputs = layers.Dense(n_outputs, activation=activation, name='output')(x)
-    model = tf.keras.Model(inputs, outputs)
-
-    return model
-'''
 
 def make_simple_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True):
     
@@ -210,10 +190,10 @@ def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=N
     if seed is not None:
         tf.random.set_seed(seed)
 
-    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
-                       transfer_learning=transfer_learning, base_model=base_model)
+    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width, transfer_learning=transfer_learning, base_model=base_model)
     #model = make_simple_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
     #                   transfer_learning=transfer_learning)
+    #model = make_classifier(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width, img_depth=2048)
     if transfer_learning:
         freeze_all_base_model(model, base_model=base_model)
     else:
@@ -231,8 +211,10 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
                                  save_best_only=True, monitor='val_loss')
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4, verbose=1)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, restore_best_weights=True)
-
+    
+    
     callbacks = [tb, checkpoint, reduce_lr, early_stopping]
+    #callbacks = [checkpoint, reduce_lr, early_stopping]
     if streamlit_callbacks is not None:  # used only with streamlit web application
         class ProgressBarCallback(tf.keras.callbacks.Callback):
             def __init__(self, base_epochs, fine_tuning_epochs):
@@ -267,6 +249,21 @@ def callbacks_definition(log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHE
                                                                                       (self.base_epochs -
                                                                                        self.actual_base_epochs))))
         callbacks = callbacks + [ProgressBarCallback(base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs)]
+        #ARRUMAR
+        import matplotlib.pyplot as plt
+        class timecallback(tf.keras.callbacks.Callback):
+            def __init__(self):
+                self.times = []
+                # use this value as reference to calculate cummulative time taken
+                self.timetaken = time.time()
+            def on_epoch_end(self,epoch,logs = {}):
+                self.times.append((epoch,time.time() - self.timetaken))
+            def on_train_end(self,logs = {}):
+                plt.xlabel('Epoch')
+                plt.ylabel('Total time taken until an epoch in seconds')
+                plt.plot(*zip(*self.times))
+                plt.show()
+        callbacks = callbacks + [timecallback()]
     return callbacks
 
 
@@ -289,7 +286,14 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
         tf.random.set_seed(seed)
 
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
+    #history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks, validation_steps=valid_ds.cardinality())
     
+    gc.collect()
+    del model
+    gc.collect()
+    
+    clear_session()
+    #disable_eager_execution()
     model = load_best_model(checkpoints_path=checkpoints_path)
 
     if transfer_learning and (fine_tuning_epochs > 0):
@@ -305,5 +309,11 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
         history = model.fit(train_ds, epochs=total_epochs, validation_data=valid_ds, callbacks=callbacks,
                             initial_epoch=history.epoch[-1] + 1)
         
+        gc.collect()
+        del model
+        gc.collect()
+        
+        clear_session()
+        #disable_eager_execution()
         model = load_best_model(checkpoints_path=checkpoints_path)
     return model, history
