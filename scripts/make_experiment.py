@@ -67,7 +67,7 @@ def make_experiment():
     
     start_time = time.time()
     train_main(sample_dataset=SAMPLE_DATASET, batch_size=BATCH_SIZE, img_height=IMG_HEIGHT, img_width=IMG_WIDTH, n_hidden=N_HIDDEN,
-               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL)
+               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL, metrics=set(metrics.keys()) - set(['fit_time', 'test_time']))
     metrics['fit_time'].append(time.time() - start_time)
     gc.collect()
     

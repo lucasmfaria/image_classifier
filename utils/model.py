@@ -185,8 +185,7 @@ def loss_definition(n_classes):
     return tf.keras.losses.CategoricalCrossentropy() if n_classes > 2 else tf.keras.losses.BinaryCrossentropy()
 
 
-def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, base_lr=0.001,
-                  transfer_learning=True, base_model='vgg16'):
+def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, transfer_learning=True, base_model='vgg16'):
     if seed is not None:
         tf.random.set_seed(seed)
 
@@ -198,9 +197,7 @@ def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=N
         freeze_all_base_model(model, base_model=base_model)
     else:
         unfreeze_all_base_model(model, base_model=base_model)
-
-    loss = loss_definition(n_classes=n_classes)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr), loss=loss, metrics=['accuracy'])
+    
     return model
 
 
@@ -281,10 +278,14 @@ def load_best_model(checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
 
 
 def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epochs=30, fine_tune_at_layer=15,
-          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True, base_model='vgg16', checkpoints_path=DEFAULT_CHECKPOINTS_PATH):
+          fine_tuning_lr=0.001, callbacks=None, seed=None, transfer_learning=True, base_model='vgg16', checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_lr=0.001, metrics=['accuracy']):
     if seed is not None:
         tf.random.set_seed(seed)
-
+    
+    metrics_ = [tf.keras.metrics.AUC(curve='ROC', name='roc_auc') if metric == 'roc_auc' else metric for metric in metrics]
+    metrics_ = [tf.keras.metrics.AUC(curve='PR', name='pr_auc') if metric == 'pr_auc' else metric for metric in metrics_]
+    loss = loss_definition(n_classes=n_classes)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_lr), loss=loss, metrics=metrics_)
     history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks)
     #history = model.fit(train_ds, epochs=base_epochs, validation_data=valid_ds, callbacks=callbacks, validation_steps=valid_ds.cardinality())
     
@@ -301,7 +302,7 @@ def train(model, train_ds, valid_ds, n_classes, base_epochs=30, fine_tuning_epoc
 
         total_epochs = base_epochs + fine_tuning_epochs
         loss = loss_definition(n_classes=n_classes)
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=fine_tuning_lr), loss=loss, metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=fine_tuning_lr), loss=loss, metrics=metrics_)
 
         if seed is not None:
             tf.random.set_seed(seed)

@@ -48,6 +48,7 @@ parser.add_argument('--transfer_learning', type=true_or_false, help='Whether or 
                     default=True)
 parser.add_argument('--base_model', type=str, help='Which architecture to use as a base convnet model',
                     default='vgg16')
+parser.add_argument('--metrics', help='Classification metrics to calculate', default=['accuracy'], nargs="*")
 args = parser.parse_args()
 
 # TODO - use flake8 for python style test
@@ -66,7 +67,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
          img_height=224, img_width=224, seed=None, unit_test_dataset=False, n_hidden=512, base_lr=0.001,
          log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_epochs=30, fine_tuning_epochs=30,
          fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights', streamlit_callbacks=None,
-         transfer_learning=True, base_model='vgg16'):
+         transfer_learning=True, base_model='vgg16', metrics=['accuracy']):
 
     # load the dataset:
     train_ds, _, valid_ds, class_names = dataset_definition(train_path=Path(train_path),
@@ -77,7 +78,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
     
     # build the initial model with frozen base_model layers:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
-                          seed=seed, base_lr=base_lr, transfer_learning=transfer_learning, base_model=base_model)
+                          seed=seed, transfer_learning=transfer_learning, base_model=base_model)
     # create the callback functions:
     callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path),
                                      streamlit_callbacks=streamlit_callbacks, base_epochs=base_epochs,
@@ -86,7 +87,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
     model, history = train(model=model, train_ds=train_ds, valid_ds=valid_ds, n_classes=len(class_names),
                            base_epochs=base_epochs, fine_tuning_epochs=fine_tuning_epochs,
                            fine_tune_at_layer=fine_tune_at_layer, fine_tuning_lr=fine_tuning_lr,
-                           callbacks=callbacks, seed=seed, transfer_learning=transfer_learning, base_model=base_model, checkpoints_path=Path(checkpoints_path))
+                           callbacks=callbacks, seed=seed, transfer_learning=transfer_learning, base_model=base_model, checkpoints_path=Path(checkpoints_path), base_lr=base_lr, metrics=metrics)
     # save the model
     model.save(Path(checkpoints_path) / final_model_name, save_format='h5')
 
@@ -98,4 +99,4 @@ if __name__ == '__main__':
          log_path=Path(args.log_path), checkpoints_path=Path(args.checkpoints_path), base_epochs=args.base_epochs,
          fine_tuning_epochs=args.fine_tuning_epochs, fine_tune_at_layer=args.fine_tune_at_layer,
          fine_tuning_lr=args.fine_tuning_lr, final_model_name=args.final_model_name,
-         transfer_learning=args.transfer_learning, base_model=args.base_model)
+         transfer_learning=args.transfer_learning, base_model=args.base_model, metrics=args.metrics)
