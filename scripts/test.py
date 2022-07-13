@@ -62,6 +62,7 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
 
     precision_recall = None
     roc = None
+    auc_values = None
     if len(class_names) == 2:
         auc_results = dict()
         # Calculates precision, recall, thresholds and auc for positive class (class_names[1])
@@ -74,6 +75,7 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         precision_, recall_, thresholds_ = precision_recall_curve(1 - y_true, 1 - y_score)
         thresholds_ = np.append(thresholds_, 1)  # append the threshold "1", due to sklearn behavior
         auc_results[class_names[0]] = average_precision_score(1 - y_true, 1 - y_score)
+        precision_recall_auc = auc_results
         classes = classes + [class_names[0]] * recall_.shape[0]
 
         # generates full dataframe with both classes
@@ -92,6 +94,7 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         # Calculates roc metrics and auc for negative class (class_names[0])
         fpr_, tpr_, thresholds_ = roc_curve(1 - y_true, 1 - y_score)
         auc_results[class_names[0]] = auc(fpr_, tpr_)
+        roc_auc = auc_results
         classes = classes + [class_names[0]] * fpr_.shape[0]
 
         # generates full dataframe with both classes
@@ -100,11 +103,16 @@ def main(test_path=DEFAULT_TEST_PATH, sample_dataset=None, batch_size=64, img_he
         tpr = np.append(tpr, tpr_)
         df = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'class': classes, 'thresholds': thresholds})
         roc = build_roc(df, auc_results)
-
+        
+        auc_values = {
+            'pr_auc': precision_recall_auc,
+            'roc_auc': roc_auc
+        }
+        
     if return_results:
         classification_report_dict = classification_report(y_true, y_pred, target_names=class_names, digits=2,
                                                            output_dict=return_results)
-        return classification_report_dict, df_confusion_matrix, precision_recall, roc
+        return (classification_report_dict, auc_values), df_confusion_matrix, precision_recall, roc
     elif (roc is not None) and (precision_recall is not None):
         roc.show()
         precision_recall.show()

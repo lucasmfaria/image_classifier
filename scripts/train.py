@@ -48,7 +48,7 @@ parser.add_argument('--transfer_learning', type=true_or_false, help='Whether or 
                     default=True)
 parser.add_argument('--base_model', type=str, help='Which architecture to use as a base convnet model',
                     default='vgg16')
-parser.add_argument('--metrics', help='Classification metrics to calculate', default=['accuracy'], nargs="*")
+parser.add_argument('--metrics', help='Classification metrics to calculate (accuracy, roc_auc, pr_auc)', default=['accuracy'], nargs="*")
 args = parser.parse_args()
 
 # TODO - use flake8 for python style test

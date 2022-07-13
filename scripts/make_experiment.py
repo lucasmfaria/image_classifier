@@ -65,26 +65,23 @@ def make_experiment():
     clear_session()
     #disable_eager_execution()
     
+    model_metrics = set(metrics.keys()) - set(['fit_time', 'test_time'])
     start_time = time.time()
     train_main(sample_dataset=SAMPLE_DATASET, batch_size=BATCH_SIZE, img_height=IMG_HEIGHT, img_width=IMG_WIDTH, n_hidden=N_HIDDEN,
-               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL, metrics=set(metrics.keys()) - set(['fit_time', 'test_time']))
+               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL, metrics=model_metrics)
     metrics['fit_time'].append(time.time() - start_time)
     gc.collect()
     
     start_time = time.time()
-    results = test_main(sample_dataset=SAMPLE_DATASET, return_results=True, batch_size=BATCH_SIZE, img_height=IMG_HEIGHT, img_width=IMG_WIDTH)
+    (classification_report_dict, auc_values), df_confusion_matrix, precision_recall, roc = test_main(sample_dataset=SAMPLE_DATASET, return_results=True, batch_size=BATCH_SIZE, img_height=IMG_HEIGHT, img_width=IMG_WIDTH)
     metrics['test_time'].append(time.time() - start_time)
     gc.collect()
     
-    # precision recall AUC:
-    tuple_result = (results[2].layout.annotations[0].text, results[2].layout.annotations[1].text)
-    metrics['pr_auc'].append(tuple_result)
+    if auc_values is not None:
+        metrics['pr_auc'].append(auc_values['pr_auc'])  # precision recall AUC:
+        metrics['roc_auc'].append(auc_values['roc_auc'])  # roc curve AUC:
     
-    # roc curve AUC:
-    tuple_result = (results[3].layout.annotations[0].text, results[3].layout.annotations[1].text)
-    metrics['roc_auc'].append(tuple_result)
-    
-    metrics['accuracy'].append(results[0]['accuracy'])
+    metrics['accuracy'].append(classification_report_dict['accuracy'])
     
     experiment_result = {
             'metrics': metrics,
