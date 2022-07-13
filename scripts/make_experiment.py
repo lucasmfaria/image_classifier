@@ -100,7 +100,7 @@ def make_experiment():
 
 def main():
     for i in range(N_SAME_EXPERIMENT):
-        p = Process(target=make_experiment)
+        p = Process(target=make_experiment)  # using Process class to make sure the memory is clean after each experiment. This prevents training and testing from getting slow after each experiment.
         p.start()
         flag = p.join()
         print('Subprocess exited with code', str(flag))
