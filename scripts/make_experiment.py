@@ -29,10 +29,12 @@ P-R AUC
 '''
 
 N_SAME_EXPERIMENT = 10
-SAMPLE_DATASET = 'patch_camelyon_resnet152v2'
+#SAMPLE_DATASET = 'patch_camelyon_resnet152v2'
+SAMPLE_DATASET = 'patch_camelyon_vgg16'
 BATCH_SIZE = 1024
 IMG_HEIGHT = 7
 IMG_WIDTH = 7
+IMG_DEPTH = 512
 N_HIDDEN = 512
 BASE_EPOCHS = 35
 FINE_TUNING_EPOCHS = 0
@@ -46,6 +48,7 @@ def make_experiment():
         'BATCH_SIZE': BATCH_SIZE,
         'IMG_HEIGHT': IMG_HEIGHT,
         'IMG_WIDTH': IMG_WIDTH,
+        'IMG_DEPTH': IMG_DEPTH,
         'N_HIDDEN': N_HIDDEN,
         'BASE_EPOCHS': BASE_EPOCHS,
         'FINE_TUNING_EPOCHS': FINE_TUNING_EPOCHS,
