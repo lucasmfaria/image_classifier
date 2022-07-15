@@ -12,7 +12,7 @@ DEFAULT_CHECKPOINTS_PATH = Path(__file__).resolve().parent.parent / 'models' / '
 DEFAULT_LOG_PATH = Path(__file__).resolve().parent.parent / 'models' / 'vgg16' / 'logs'
 
 # TODO - change img_depth depending on features from dataset - 2048, 512 until now
-def make_classifier(n_classes, n_hidden=512, img_height=7, img_width=7, img_depth=512):
+def make_classifier(n_classes, n_hidden=512, img_height=7, img_width=7, img_depth=2048):
     
     inputs = layers.Input(shape=(img_height, img_width, img_depth))
     x = layers.Flatten(name='flatten')(inputs)

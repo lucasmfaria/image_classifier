@@ -237,7 +237,7 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
 
         return train_ds, test_ds, valid_ds, class_names
-    elif sample_dataset in ['patch_camelyon_resnet152v2', 'patch_camelyon_vgg16']:
+    elif sample_dataset in ['patch_camelyon_resnet152v2', 'patch_camelyon_vgg16', 'patch_camelyon_inceptionv3']:
         def parse_tfr_element(element):
             data = {
               'height': tf.io.FixedLenFeature([], tf.int64),
@@ -331,7 +331,7 @@ def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_P
                                                                  img_height=img_height, img_width=img_width)
         test_ds = valid_ds
 
-    elif sample_dataset in ['patch_camelyon', 'oxford_flowers102', 'patch_camelyon_resnet152v2', 'patch_camelyon_vgg16']:  # loads a sample dataset for user/unit testing
+    elif sample_dataset in ['patch_camelyon', 'oxford_flowers102', 'patch_camelyon_resnet152v2', 'patch_camelyon_vgg16', 'patch_camelyon_inceptionv3']:  # loads a sample dataset for user/unit testing
         train_ds, test_ds, valid_ds, class_names = prepare_sample_dataset(sample_dataset=sample_dataset,
                                                                           batch_size=batch_size, img_height=img_height,
                                                                           img_width=img_width)
