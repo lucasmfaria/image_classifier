@@ -33,7 +33,7 @@ def make_classifier(n_classes, n_hidden=512, img_height=7, img_width=7, img_dept
     return model
 
 
-def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True, base_model='vgg16'):
+def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, img_width=224, transfer_learning=True, base_model='vgg16', img_depth=3):
     """
     Creates a ConvNet classification model using a VGG16 pre-trained model for transfer learning.
     :param n_classes: int - number of classes required for the classification problem
@@ -80,14 +80,14 @@ def make_model(n_classes, include_top_vgg=False, n_hidden=512, img_height=224, i
         base_model_net = inception_v3.InceptionV3(include_top=False, weights=weights)
         preprocess_layer = inception_v3.preprocess_input
     elif base_model == 'classifier':
-        return make_classifier(n_classes, n_hidden, img_height, img_width)
+        return make_classifier(n_classes, n_hidden, img_height, img_width, img_depth=img_depth)
     
     data_augmentation = tf.keras.Sequential([
         layers.experimental.preprocessing.RandomFlip('horizontal'),
         layers.experimental.preprocessing.RandomRotation(0.2),
     ])
 
-    inputs = layers.Input(shape=(img_height, img_width, 3))
+    inputs = layers.Input(shape=(img_height, img_width, img_depth))
     x = data_augmentation(inputs)
     x = preprocess_layer(x)
     x = base_model_net(x, training=False)
@@ -185,11 +185,11 @@ def loss_definition(n_classes):
     return tf.keras.losses.CategoricalCrossentropy() if n_classes > 2 else tf.keras.losses.BinaryCrossentropy()
 
 
-def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, transfer_learning=True, base_model='vgg16'):
+def initial_model(n_classes, n_hidden=512, img_height=224, img_width=224, seed=None, transfer_learning=True, base_model='vgg16', img_depth=3):
     if seed is not None:
         tf.random.set_seed(seed)
 
-    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width, transfer_learning=transfer_learning, base_model=base_model)
+    model = make_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width, transfer_learning=transfer_learning, base_model=base_model, img_depth=img_depth)
     #model = make_simple_model(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width,
     #                   transfer_learning=transfer_learning)
     #model = make_classifier(n_classes=n_classes, n_hidden=n_hidden, img_height=img_height, img_width=img_width, img_depth=2048)

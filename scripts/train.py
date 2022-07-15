@@ -67,7 +67,7 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
          img_height=224, img_width=224, seed=None, unit_test_dataset=False, n_hidden=512, base_lr=0.001,
          log_path=DEFAULT_LOG_PATH, checkpoints_path=DEFAULT_CHECKPOINTS_PATH, base_epochs=30, fine_tuning_epochs=30,
          fine_tune_at_layer=15, fine_tuning_lr=0.001, final_model_name='trained_weights', streamlit_callbacks=None,
-         transfer_learning=True, base_model='vgg16', metrics=['accuracy']):
+         transfer_learning=True, base_model='vgg16', metrics=['accuracy'], img_depth=3):
 
     # load the dataset:
     train_ds, _, valid_ds, class_names = dataset_definition(train_path=Path(train_path),
@@ -76,9 +76,9 @@ def main(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_PATH, sample_da
                                                                      img_height=img_height, img_width=img_width,
                                                                      seed=seed, unit_test_dataset=unit_test_dataset)
     
-    # build the initial model with frozen base_model layers:
+    # build the initial model with frozen base_model layers or model with classifier layers only:
     model = initial_model(n_classes=len(class_names), n_hidden=n_hidden, img_height=img_height, img_width=img_width,
-                          seed=seed, transfer_learning=transfer_learning, base_model=base_model)
+                          seed=seed, transfer_learning=transfer_learning, base_model=base_model, img_depth=img_depth)
     # create the callback functions:
     callbacks = callbacks_definition(log_path=Path(log_path), checkpoints_path=Path(checkpoints_path),
                                      streamlit_callbacks=streamlit_callbacks, base_epochs=base_epochs,

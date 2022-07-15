@@ -31,11 +31,15 @@ P-R AUC
 N_SAME_EXPERIMENT = 10
 #SAMPLE_DATASET = 'patch_camelyon_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'patch_camelyon_vgg16'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
-SAMPLE_DATASET = 'patch_camelyon_inceptionv3'
+#SAMPLE_DATASET = 'patch_camelyon_inceptionv3'  # IMG_WIDTH = 5  IMG_HEIGHT = 5 IMG_DEPTH = 2048
+SAMPLE_DATASET = 'patch_camelyon_vgg19'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
+#SAMPLE_DATASET = 'patch_camelyon_resnet50'
+#SAMPLE_DATASET = 'patch_camelyon_densenet121'
+#SAMPLE_DATASET = 'patch_camelyon_densenet201'
 BATCH_SIZE = 1024
-IMG_HEIGHT = 5
-IMG_WIDTH = 5
-IMG_DEPTH = 2048
+IMG_HEIGHT = 7
+IMG_WIDTH = 7
+IMG_DEPTH = 512
 N_HIDDEN = 512
 BASE_EPOCHS = 35
 FINE_TUNING_EPOCHS = 0
@@ -72,7 +76,7 @@ def make_experiment():
     model_metrics = set(metrics.keys()) - set(['fit_time', 'test_time'])
     start_time = time.time()
     train_main(sample_dataset=SAMPLE_DATASET, batch_size=BATCH_SIZE, img_height=IMG_HEIGHT, img_width=IMG_WIDTH, n_hidden=N_HIDDEN,
-               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL, metrics=model_metrics)
+               base_epochs=BASE_EPOCHS, fine_tuning_epochs=FINE_TUNING_EPOCHS, transfer_learning=TRANSFER_LEARNING, base_model=BASE_MODEL, metrics=model_metrics, img_depth=IMG_DEPTH)
     metrics['fit_time'].append(time.time() - start_time)
     gc.collect()
     
