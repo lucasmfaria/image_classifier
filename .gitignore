@@ -22,6 +22,7 @@ data/tfrecords/patch_camelyon/inceptionv3/test/*
 data/tfrecords/patch_camelyon/vgg19/train/*
 data/tfrecords/patch_camelyon/vgg19/validation/*
 data/tfrecords/patch_camelyon/vgg19/test/*
+data/tfrecords/*/*/*/*.tfrecords
 models/vgg16/checkpoints/*.tf.*
 models/vgg16/checkpoints/*.tf
 models/vgg16/checkpoints/trained_weights.*

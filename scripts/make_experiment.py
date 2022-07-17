@@ -32,14 +32,14 @@ N_SAME_EXPERIMENT = 10
 #SAMPLE_DATASET = 'patch_camelyon_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'patch_camelyon_vgg16'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
 #SAMPLE_DATASET = 'patch_camelyon_inceptionv3'  # IMG_WIDTH = 5  IMG_HEIGHT = 5 IMG_DEPTH = 2048
-SAMPLE_DATASET = 'patch_camelyon_vgg19'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
-#SAMPLE_DATASET = 'patch_camelyon_resnet50'
-#SAMPLE_DATASET = 'patch_camelyon_densenet121'
-#SAMPLE_DATASET = 'patch_camelyon_densenet201'
+#SAMPLE_DATASET = 'patch_camelyon_vgg19'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
+#SAMPLE_DATASET = 'patch_camelyon_resnet50'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
+#SAMPLE_DATASET = 'patch_camelyon_densenet121'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 1024
+SAMPLE_DATASET = 'patch_camelyon_densenet201'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 1920
 BATCH_SIZE = 1024
 IMG_HEIGHT = 7
 IMG_WIDTH = 7
-IMG_DEPTH = 512
+IMG_DEPTH = 1920
 N_HIDDEN = 512
 BASE_EPOCHS = 35
 FINE_TUNING_EPOCHS = 0
