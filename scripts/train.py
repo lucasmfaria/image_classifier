@@ -1,5 +1,5 @@
-from tensorflow.keras.backend import clear_session
-from tensorflow.python.framework.ops import disable_eager_execution
+import tensorflow as tf
+#tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
 from pathlib import Path
 import sys
 import argparse
