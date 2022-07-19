@@ -34,14 +34,16 @@ for json_result in jsons:
 def mean_std(x):
     return str(x.mean().round(3)) + ' +- ' + str(n_std * x.std().round(3))
 
+#class_names = ['normal_tissue', 'metastatic_tissue']
+class_names = ['non_charizard', 'charizard']
 def mean_std_agg_dict(x):
-    return {'metastatic_tissue': str(x.map(lambda x: x['metastatic_tissue']).mean().round(3)) + ' +- ' + str(n_std * x.map(lambda x: x['metastatic_tissue']).std().round(3)), 'normal_tissue': str(x.map(lambda x: x['normal_tissue']).mean().round(3)) + ' +- ' + str(n_std * x.map(lambda x: x['normal_tissue']).std().round(3))}
+    return {class_names[1]: str(x.map(lambda x: x[class_names[1]]).mean().round(3)) + ' +- ' + str(n_std * x.map(lambda x: x[class_names[1]]).std().round(3)), class_names[0]: str(x.map(lambda x: x[class_names[0]]).mean().round(3)) + ' +- ' + str(n_std * x.map(lambda x: x[class_names[0]]).std().round(3))}
 
 def agg_func_roc_auc(x):
-    return {'metastatic_tissue': x.map(lambda x: x['metastatic_tissue']).mean(), 'normal_tissue': x.map(lambda x: x['normal_tissue']).mean()}
+    return {class_names[1]: x.map(lambda x: x[class_names[1]]).mean(), class_names[0]: x.map(lambda x: x[class_names[0]]).mean()}
 
 def agg_func_pr_auc(x):
-    return {'metastatic_tissue': x.map(lambda x: x['metastatic_tissue']).mean(), 'normal_tissue': x.map(lambda x: x['normal_tissue']).mean()}
+    return {class_names[1]: x.map(lambda x: x[class_names[1]]).mean(), class_names[0]: x.map(lambda x: x[class_names[0]]).mean()}
 
 agg_dict = {
     #'fit_time': np.mean,

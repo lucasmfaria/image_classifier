@@ -196,7 +196,7 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         class_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
         def preprocess(image, label):
-            image = tf.cast(image, tf.float32) / 255.
+            #image = tf.cast(image, tf.float32) / 255.  # doesnt need to divide by 255 as we use the preprocess_input layer from pre-trained models from tensorflow
             return tf.image.grayscale_to_rgb(tf.image.resize(image, size=(img_height, img_width))), \
                    tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
 
@@ -221,7 +221,7 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         class_names = ['normal_tissue', 'metastatic_tissue']
 
         def preprocess(image, label):
-            image = tf.cast(image, tf.float32) / 255.
+            #image = tf.cast(image, tf.float32) / 255.  # doesnt need to divide by 255 as we use the preprocess_input layer from pre-trained models from tensorflow
             return tf.image.resize(image, size=(img_height, img_width)), label
 
         train_ds = train_ds.map(preprocess, num_parallel_calls=tf.data.AUTOTUNE)
@@ -293,6 +293,63 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         
         return train_ds, test_ds, valid_ds, class_names
         
+    elif sample_dataset in ['oxford_flowers102_resnet152v2']:
+        _, ds_info = tfds.load(sample_dataset, split=['train'], shuffle_files=False, as_supervised=True, with_info=True)
+        class_names = ds_info.features['label'].names
+        
+        def parse_tfr_element(element):
+            data = {
+              'height': tf.io.FixedLenFeature([], tf.int64),
+              'width':tf.io.FixedLenFeature([], tf.int64),
+              'label':tf.io.FixedLenFeature([], tf.int64),
+              'raw_image' : tf.io.FixedLenFeature([], tf.string),
+              'depth':tf.io.FixedLenFeature([], tf.int64),
+            }
+            
+            content = tf.io.parse_single_example(element, data)
+            
+            height = content['height']
+            width = content['width']
+            depth = content['depth']
+            label = content['label']
+            raw_image = content['raw_image']
+            
+            feature = tf.io.parse_tensor(raw_image, out_type=tf.float32)
+            feature = tf.reshape(feature, shape=[height,width,depth])
+            return (feature, tf.one_hot(label, depth=len(class_names), dtype=tf.uint8))
+        
+        model_features = sample_dataset.split('_')[-1]
+        dataset_name = '_'.join(sample_dataset.split('_')[:-1])
+        train_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / dataset_name / model_features / 'train' / 'dataset*'
+        test_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / dataset_name / model_features / 'test' / 'dataset*'
+        valid_pattern = Path(__file__).resolve().parent.parent / 'data' / 'tfrecords' / dataset_name / model_features / 'validation' / 'dataset*'
+        
+        train_ds = tf.data.TFRecordDataset.list_files(str(train_pattern))
+        #train_ds = train_ds.shuffle(buffer_size=len(train_ds))
+        train_ds = train_ds.shuffle(buffer_size=train_ds.cardinality())
+        train_ds = train_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        train_ds = train_ds.map(parse_tfr_element)
+        train_ds = train_ds.shuffle(10000)
+        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+        
+        valid_ds = tf.data.TFRecordDataset.list_files(str(valid_pattern))
+        valid_ds = valid_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        valid_ds = valid_ds.map(parse_tfr_element)
+        valid_ds = valid_ds.batch(batch_size)
+        valid_ds = valid_ds.prefetch(tf.data.AUTOTUNE)
+        
+        #test_ds = tf.data.TFRecordDataset.list_files(str(test_pattern))
+        #test_ds = test_ds.interleave(tf.data.TFRecordDataset, num_parallel_calls=tf.data.AUTOTUNE)
+        import glob
+        test_files = glob.glob(str(Path(test_pattern)), recursive=False)
+        test_ds = tf.data.TFRecordDataset(test_files)
+        test_ds = test_ds.map(parse_tfr_element)
+        test_ds = test_ds.batch(batch_size)
+        test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
+        
+        return train_ds, test_ds, valid_ds, class_names
+        
     elif sample_dataset == 'oxford_flowers102':
         (train_ds, valid_ds), ds_info = tfds.load(sample_dataset, split=['train', 'validation'],
                                                            shuffle_files=True, as_supervised=True, with_info=True)
@@ -304,7 +361,7 @@ def prepare_sample_dataset(sample_dataset, batch_size=64, img_height=224, img_wi
         class_names = ds_info.features['label'].names
 
         def preprocess(image, label):
-            image = tf.cast(image, tf.float32) / 255.
+            #image = tf.cast(image, tf.float32) / 255.  # doesnt need to divide by 255 as we use the preprocess_input layer from pre-trained models from tensorflow
             return tf.image.resize(image, size=(img_height, img_width)), \
                    tf.one_hot(label, depth=len(class_names), dtype=tf.uint8)
 
@@ -362,6 +419,7 @@ def dataset_definition(train_path=DEFAULT_TRAIN_PATH, valid_path=DEFAULT_VALID_P
             train_ds = train_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
             valid_ds = valid_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
             test_ds = test_ds.map(filter_binary_labels, num_parallel_calls=AUTOTUNE)
+        
         train_ds = optimize_dataset(train_ds)
         valid_ds = optimize_dataset(valid_ds)
         test_ds = optimize_dataset(test_ds)

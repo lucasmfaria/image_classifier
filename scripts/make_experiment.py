@@ -28,15 +28,15 @@ ROC AUC
 P-R AUC
 '''
 
-N_SAME_EXPERIMENT = 2
-#SAMPLE_DATASET = 'patch_camelyon_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
+N_SAME_EXPERIMENT = 10
+SAMPLE_DATASET = 'patch_camelyon_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'patch_camelyon_vgg16'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
 #SAMPLE_DATASET = 'patch_camelyon_inceptionv3'  # IMG_WIDTH = 5  IMG_HEIGHT = 5 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'patch_camelyon_vgg19'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
 #SAMPLE_DATASET = 'patch_camelyon_resnet50'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'patch_camelyon_densenet121'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 1024
 #SAMPLE_DATASET = 'patch_camelyon_densenet201'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 1920
-SAMPLE_DATASET = 'oxford_flowers102_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
+#SAMPLE_DATASET = 'oxford_flowers102_resnet152v2'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'oxford_flowers102_vgg16'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
 #SAMPLE_DATASET = 'oxford_flowers102_inceptionv3'  # IMG_WIDTH = 5  IMG_HEIGHT = 5 IMG_DEPTH = 2048
 #SAMPLE_DATASET = 'oxford_flowers102_vgg19'  # IMG_WIDTH = 7  IMG_HEIGHT = 7 IMG_DEPTH = 512
@@ -50,7 +50,18 @@ FINE_TUNING_EPOCHS = 0
 TRANSFER_LEARNING = False
 BASE_MODEL = 'classifier'
 
-
+'''
+SAMPLE_DATASET = 'Charizard'
+BATCH_SIZE = 32
+IMG_HEIGHT = 224
+IMG_WIDTH = 224
+IMG_DEPTH = 3
+BASE_MODEL = 'vgg16'
+N_HIDDEN = 512
+BASE_EPOCHS = 35
+FINE_TUNING_EPOCHS = 35
+TRANSFER_LEARNING = True
+'''
 def make_experiment():
     parameters = {
         'SAMPLE_DATASET': SAMPLE_DATASET,
@@ -102,7 +113,7 @@ def make_experiment():
     
     experiment_output_path = Path(__file__).resolve().parent.parent / 'data' / 'experiments'
     try:
-        max_experiment_file_num = max([int(file.name.split('_')[-1].split('.')[0]) for file in list(experiment_output_path.iterdir()) if file.name != '.gitkeep'])
+        max_experiment_file_num = max([int(file.name.split('_')[-1].split('.')[0]) for file in list(experiment_output_path.iterdir()) if file.suffix == '.json'])
     except ValueError:
         max_experiment_file_num = 0
     

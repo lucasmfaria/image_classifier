@@ -11,6 +11,7 @@ data/*/*/*.csv
 data/*/*/*.pdf
 data/experiments/*.json
 data/tfrecords/*/*/*/*.tfrecords
+data/experiments/*/*
 models/vgg16/checkpoints/*.tf.*
 models/vgg16/checkpoints/*.tf
 models/vgg16/checkpoints/trained_weights.*
